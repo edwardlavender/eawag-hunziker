@@ -5,6 +5,8 @@
 data-raw/
 data/*
 !data/inst
+QGIS
+R/deprecated/
 doc/
 fig/
 *.html
