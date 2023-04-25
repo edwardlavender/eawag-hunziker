@@ -48,7 +48,6 @@ prop_sss <- readRDS(here_data("prop_sss.rds"))
 # * We will re-scale length to improve model identifiability 
 # * NAGQ controls the accuracy of the log likelihood evaluation
 # * The default option is 1 but we can increase this (at the expense of speed) 
-
 mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream), 
              data = fish, family = binomial(link = "logit"), 
              nAGQ = 25)
@@ -67,7 +66,7 @@ mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream),
 # ... but marginally improves model fit (AIC)
 # ... scale() produces poor fit on predictive plot 
 # * REML or ML recommended for fitting GAMs
-mod_2 <- gam(migration ~ sex + s(log(length), by = sex) + s(stream, bs = "re"), 
+mod_2 <- gam(migration ~ sex + s(yday) + s(log(length), by = sex) + s(stream, bs = "re"), 
              family = binomial, data = fish, gamma = 1.4, 
              method = "REML")
 
@@ -79,6 +78,7 @@ AIC(mod_2)
 # * log(length): 769.2234 ("ML"), 767.7716 ("REML"), little visual difference 
 # * length:      773.2707 ("ML"), 769.8456 ("REML"), little visual difference 
 # * scale(length): poorer fit visually apparent
+# * Adding yday improves model fit 
 # Choose model
 mod <- mod_2
 is_glmer <- inherits(mod, "merMod")
@@ -102,13 +102,11 @@ if (is_glmer) {
 #### Create blank plot 
 # We define the vertical axis to range slightly beyond c(0, 1)
 # This enables us to add rugs at the top for males/females (see add_outcomes())
-paa <- list(x = list(x = c(80, 240), 
-                     y = c(-0.1, 1.1)), 
+paa <- list(lim = list(x = list(80, 240), 
+                       y = c(-0.1, 1.1)),
             axis = list(x = list(NULL), 
-                        y = list(at = c(-0.1, seq(0, 1, 0.2), 1.1),
-                                 labels = c("", add_lagging_point_zero(seq(0, 1, 0.2)), "")
-                                 ))
-)
+                        y = list(at = seq(0, 1, 0.2)))
+            )
 pretty_plot(prop_ss$length, prop_ss$pr,
             pretty_axis_args = paa,
             type = "n", 
@@ -157,6 +155,7 @@ if (is_glmer) {
   #### Generate model predictions via predict.gam()
   # We can exclude the effect of stream via the exclude argument
   nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
+                   yday = median(fish$yday),
                    length = c(fs, ms))
   p <- predict(mod, newdata = nd, 
                exclude = "s(stream)", 
@@ -253,6 +252,7 @@ if (!is_glmer) {
     # Generate predictions for stream
     nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
                      length = c(fs, ms), 
+                     yday = median(fish$yday),
                      stream = stream)
     p <- predict(mod, newdata = nd, 
                  se.fit = TRUE, 
