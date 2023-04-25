@@ -66,7 +66,12 @@ mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream),
 # ... but marginally improves model fit (AIC)
 # ... scale() produces poor fit on predictive plot 
 # * REML or ML recommended for fitting GAMs
-mod_2 <- gam(migration ~ sex + s(yday) + s(log(length), by = sex, bs = "fs") + s(stream, bs = "re"), 
+mod_2 <- gam(migration ~ 
+               sex + 
+               s(yday, bs = "cc") + 
+               s(log(length), by = sex, bs = "fs") + 
+               s(stream, bs = "re"), 
+             knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
              method = "REML")
 
@@ -89,6 +94,8 @@ AIC(mod)
 if (is_glmer) {
   equatiomatic::extract_eq(mod)
   MuMIn::r.squaredGLMM(mod)
+} else {
+  plot(mod, pages = 1, scheme = 0)
 }
 
 
@@ -303,11 +310,11 @@ if (is_glmer) {
 } else {
   
   rbind(
-    compare_gam(mod, data.frame(sex = "F", length = small)),
-    compare_gam(mod, data.frame(sex = "F", length = large)),
-    compare_gam(mod, data.frame(sex = "M", length = small)),
-    compare_gam(mod, data.frame(sex = "M", length = large))
-  )
+    compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday))),
+    compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday))),
+    compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday))),
+    compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday)))
+  ) |> round(digits = 2)
     
 }
 
