@@ -226,7 +226,7 @@ add_outcomes(fish)
 
 #### Add axis labels
 add_axes_labels <- function(line = 2, ...) {
-  mtext(side = 1, "Total length (cm)", line = line, ...)
+  mtext(side = 1, "Total length (mm)", line = line, ...)
   mtext(side = 2, "Probability of out-migration", line = line, ...)
 }
 add_axes_labels()
