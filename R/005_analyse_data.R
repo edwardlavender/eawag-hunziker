@@ -76,7 +76,7 @@ cor(fish$yday, fish$length)
 prop_ss <- 
   fish |>
   group_by(sex) |>
-  mutate(bin = cut(length, seq(min(length), max(length), length = 10))) |>
+  mutate(bin = cut(length, seq(min(length), max(length), by = 20))) |>
   ungroup() |>
   group_by(sex, bin) |>
   summarise(pr = length(which(migration == "1"))/n(), 
@@ -92,7 +92,7 @@ saveRDS(prop_ss, here_data("prop_ss.rds"))
 prop_sss <- 
   fish |>
   group_by(stream, sex) |>
-  mutate(bin = cut(length, seq(min(length), max(length), length = 10))) |>
+  mutate(bin = cut(length, seq(min(length), max(length), by = 20))) |>
   ungroup() |>
   group_by(stream, sex, bin) |>
   summarise(pr = length(which(migration == "1"))/n(), 
