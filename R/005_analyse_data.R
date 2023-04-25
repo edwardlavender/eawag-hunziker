@@ -48,9 +48,6 @@ fish |>
   tidy_write(here_fig("tables", "tag_summary.txt"))
   
 #### Summary table of tagged fish 
-fish$stream <- as.character(fish$stream)
-fish$stream[fish$stream == "Klosterbach UR"] <- "Klosterbach (UR)"
-fish$stream[fish$stream == "Klosterbach SZ"] <- "Klosterbach (SZ)"
 fish |> 
   select(id, date, stream, sex, length, migration) |> 
   arrange(date, stream, sex, length) |> 
