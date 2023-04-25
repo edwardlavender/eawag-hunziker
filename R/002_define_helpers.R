@@ -35,6 +35,20 @@ parse_cut <- function(x) {
   apply(xs, 1, mean)
 }
 
+#' @title Compare gam
+#' @description This function compares the predictions of a GAM for a hypothetical individual. The `s(stream)` effect is excluded. 
+#' @details This function is designed for the model(s) in analyse_h1.R
+
+compare_gam <- function(model, newdata) {
+  newdata$sex <- factor(newdata$sex, levels = c("F", "M"))
+  p <- 
+    predict(model, 
+            newdata = newdata,
+            exclude = "s(stream)", 
+            newdata.guaranteed = TRUE, se.fit = TRUE) |> 
+    list_CIs(inv_link = mod$family$linkinv, plot_suggestions = FALSE)
+  do.call(cbind, p)
+}
 
 #### End of code.
 ###########################
