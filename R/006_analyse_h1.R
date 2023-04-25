@@ -115,7 +115,8 @@ pp <- par(oma = c(0, 0, 0, 4))
 paa <- list(lim = list(x = list(80, 240), 
                        y = c(-0.1, 1.1)),
             axis = list(x = list(NULL), 
-                        y = list(at = seq(0, 1, 0.2)))
+                        y = list(at = seq(0, 1, 0.2))), 
+            control_axis = list(las = TRUE, cex.axis = 1.25)
             )
 pretty_plot(prop_ss$length, prop_ss$pr,
             pretty_axis_args = paa,
@@ -229,9 +230,9 @@ add_outcomes <- function(data) {
 add_outcomes(fish)
 
 #### Add axis labels
-add_axes_labels <- function(line = 2, ...) {
-  mtext(side = 1, "Total length (mm)", line = line, ...)
-  mtext(side = 2, "Probability of out-migration", line = line, ...)
+add_axes_labels <- function(cex = 1.25, line = 2, ...) {
+  mtext(side = 1, "Total length (mm)", cex = cex, line = line, ...)
+  mtext(side = 2, "Probability of out-migration", cex = cex, line = line, ...)
 }
 add_axes_labels()
 
@@ -240,7 +241,7 @@ add_axes_labels()
 px <- par(xpd = NA)
 cex.leg <- 1.1
 legend(250, 1,
-       title = "Sex",
+       title = "Sex", title.font = 2,
        legend = c("F", "M"), 
        lty = 1, pch = 21, 
        col = scales::alpha(cols, alpha_pt),
@@ -249,13 +250,13 @@ legend(250, 1,
        cex = cex.leg)
 ns <- c(10, 25, 50)
 legend(250, 0.6,
-       title = "N", title.font = 2,
+       title = "Sample (N)", title.font = 2,
        legend = ns, 
        pch = 21, 
        col = scales::alpha(cols[2], alpha_pt),
        pt.bg = scales::alpha(cols[2], alpha_pt), 
        pt.cex = ns/squash_param,
-       y.intersp = 1.5,
+       y.intersp = 1.4,
        cex = cex.leg, 
        bty = "n")
 
