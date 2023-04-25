@@ -59,6 +59,10 @@ fish |>
 #########################
 #### Summary statistics
 
+#### Size distribution of fish 
+hist(fish$length)
+HDInterval::hdi(fish$length, allowSplit = TRUE)
+
 #### Count the number of streams/captures per stream
 length(unique(fish$stream))
 table(fish$stream)
