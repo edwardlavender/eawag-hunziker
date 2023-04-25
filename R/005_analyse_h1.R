@@ -96,18 +96,32 @@ if (is_glmer) {
 #########################
 #### Visualise observations and predictions
 
+#########################
+#### Visualise predictions/observations across all streams
+
 #### Create blank plot 
+# We define the vertical axis to range slightly beyond c(0, 1)
+# This enables us to add rugs at the top for males/females (see add_outcomes())
+paa <- list(x = list(x = c(80, 240), 
+                     y = c(-0.1, 1.1)), 
+            axis = list(x = list(NULL), 
+                        y = list(at = c(-0.1, seq(0, 1, 0.2), 1.1),
+                                 labels = c("", add_lagging_point_zero(seq(0, 1, 0.2)), "")
+                                 ))
+)
 pretty_plot(prop_ss$length, prop_ss$pr,
+            pretty_axis_args = paa,
             type = "n", 
             xlab = "", ylab = "")
 
 #### Add model predictions with SEs
+# Define sequence of body sizes for prediction
 n <- 100
 ms <- fish$length[fish$sex == "M"]
 fs <- fish$length[fish$sex == "F"]
 ms <- seq(min(ms), max(ms), length = n)
 fs <- seq(min(fs), max(fs), length = n)
-
+# Add CIs
 if (is_glmer) {
   
   #### Generate model predictions across all body sizes (via ggeffects::ggpredict())
@@ -167,32 +181,110 @@ if (is_glmer) {
 }
 
 #### Add observed proportions 
-# Add lines for the observed proportion of migrants with body size 
-lapply(split(prop_ss, prop_ss$sex), function(d) {
-  # d <- split(prop_ss, prop_ss$sex)[["M"]]
-  lines(d$length, d$pr, col = d$col[1], lty = 3)
-})
-# Add observed proportions for each size class
-points(prop_ss$length, prop_ss$pr,  
-       pch = 21, bg = prop_ss$col, col = prop_ss$col, 
-       cex = prop_ss$n/20)
+add_proportions <- function(data, add_lines = FALSE, squash = 15) {
+  if (add_lines) {
+    # Add lines for the observed proportion of migrants with body size 
+    lapply(split(data, data$sex), function(d) {
+      # d <- split(data, data$sex)[["M"]]
+      lines(d$length, d$pr, col = d$col[1], lty = 3)
+    })
+  }
+  # Add observed proportions for each size class
+  data$cex <- data$n/squash
+  points(data$length, data$pr,  
+         pch = 21, bg = data$col, col = data$col, 
+         cex = data$cex)
+  # Highlight small points in red
+  tiny <- data[data$cex < 0.5, ]
+  points(tiny$length, tiny$pr, col = "red", lwd = 0.5)
+}
+add_proportions(prop_ss)
 
 #### Add observed outcomes (migration/no migration)
 # ... We shift the points for males up/down slightly to facilitate visualisation
-mi <- which(fish$sex == "M")
-fi <- which(fish$sex == "F")
-fish$migration_int <- as.integer(as.character(fish$migration))
-fish$migration_p <- fish$migration_int 
-fish$migration_p[fish$sex == "M" & fish$migration == "0"] <- 0.05
-fish$migration_p[fish$sex == "M" & fish$migration == "1"] <- 0.95
-points(fish$length[mi], fish$migration_p[mi], 
-       col = scales::alpha(cols["M"], 0.5), cex = 0.5)
-points(fish$length[fi], fish$migration_p[fi], 
-       col = scales::alpha(cols["F"], 0.5), cex = 0.5)
+add_outcomes <- function(data) {
+  mi <- which(data$sex == "M")
+  fi <- which(data$sex == "F")
+  data$migration_int <- as.integer(as.character(data$migration))
+  data$migration_p <- data$migration_int 
+  data$migration_p[data$sex == "M" & data$migration == "0"] <- -0.1
+  data$migration_p[data$sex == "M" & data$migration == "1"] <- 1.1
+  data$migration_p[data$sex == "F" & data$migration == "0"] <- -0.05
+  data$migration_p[data$sex == "F" & data$migration == "1"] <- 1.05
+  points(data$length[mi], data$migration_p[mi], 
+         col = scales::alpha(cols["M"], 0.5), cex = 0.5)
+  points(data$length[fi], data$migration_p[fi], 
+         col = scales::alpha(cols["F"], 0.5), cex = 0.5)
+}
+add_outcomes(fish)
 
 #### Add axis labels
-mtext(side = 1, "Total length (cm)", line = 2)
-mtext(side = 2, "Probability of out-migration", line = 2)
+add_axes_labels <- function(line = 2, ...) {
+  mtext(side = 1, "Total length (cm)", line = line, ...)
+  mtext(side = 2, "Probability of out-migration", line = line, ...)
+}
+add_axes_labels()
+
+
+#########################
+#### Visualise observations/predictions by stream
+
+# This code is currently only implemented for the GAM
+if (!is_glmer) {
+  
+  pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
+  lapply(seq_len(length(unique(fish$stream))), function(i) {
+    
+    #### Define blank plot 
+    stream <- sort(unique(fish$stream))[i]
+    pretty_plot(prop_sss$length, prop_sss$pr,
+                pretty_axis_args = paa,
+                type = "n", 
+                xlab = "", ylab = "")
+    
+    #### Generate model predictions
+    # Define sizes for individuals males/females in stream
+    n <- 100
+    fish_for_stream <- fish[fish$stream == stream, ]
+    ms <- fish_for_stream$length[fish_for_stream$sex == "M"]
+    fs <- fish_for_stream$length[fish_for_stream$sex == "F"]
+    ms <- seq(min(ms), max(ms), length = n)
+    fs <- seq(min(fs), max(fs), length = n)
+    # Generate predictions for stream
+    nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
+                     length = c(fs, ms), 
+                     stream = stream)
+    p <- predict(mod, newdata = nd, 
+                 se.fit = TRUE, 
+                 type = "link")
+    pred <- nd
+    pred$fit <- as.numeric(p$fit)
+    pred$se.fit <- as.numeric(p$se.fit)
+    pred$lowerCI <- mod$family$linkinv(pred$fit - 1.96 * p$se.fit)
+    pred$upperCI <- mod$family$linkinv(pred$fit + 1.96 * p$se.fit)
+    pred$fit     <- mod$family$linkinv(pred$fit)
+    pred$col <- cols[pred$sex]
+    
+    #### Add error envelopes for males/females
+    lapply(split(pred, pred$sex), function(d) {
+      add_error_envelope(d$length, 
+                         ci = list(fit = d$fit, lowerCI = d$lowerCI, upperCI = d$upperCI), 
+                         add_fit = list(col = scales::alpha(cols[d$sex[1]], alpha_fit)), 
+                         add_ci = list(col = scales::alpha(cols[d$sex[1]], alpha_ci), border = FALSE))
+    })
+    
+    #### Add observations
+    add_proportions(prop_sss[prop_sss$stream == stream, ], squash = 5)
+    add_outcomes(fish_for_stream)
+    mtext(side = 3, stream, font = 2)
+    
+  }) |> invisible()
+  
+  #### Add axes
+  add_axes_labels(outer = TRUE, line = 1)
+  par(pp)
+  
+}
 
 
 #########################
@@ -258,7 +350,7 @@ if (is_glmer) {
   par(pp)
   k.check(mod)
 
-  }
+}
 
 
 #### End of code. 
