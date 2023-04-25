@@ -66,8 +66,8 @@ mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream),
 # ... but marginally improves model fit (AIC)
 # ... scale() produces poor fit on predictive plot 
 # * REML or ML recommended for fitting GAMs
-mod_2 <- gam(migration ~ sex + s(yday) + s(log(length), by = sex) + s(stream, bs = "re"), 
-             family = binomial, data = fish, gamma = 1.4, 
+mod_2 <- gam(migration ~ sex + s(yday) + s(log(length), by = sex, bs = "fs") + s(stream, bs = "re"), 
+             family = binomial, data = fish, 
              method = "REML")
 
 #### Compare model AICs
