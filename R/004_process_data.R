@@ -24,6 +24,7 @@ library(dplyr)
 
 #### Load data
 fish <- readxl::read_excel(here_data_raw("5. Real_residents_and_migs_below_SL243mm_without_N2&LRN.xlsx"))
+# View(fish)
 
 
 #########################
@@ -35,20 +36,24 @@ fish <-
   fish |> 
   mutate(id = row_number()) |>
   select(id, 
+         date = tag.date,
          stream,
          sex = sex, 
          length = SL,
-         day = tag.date.jul, 
          migration = downmig.bin
          ) |>
   mutate(id = factor(id), 
          sex = factor(sex),
          stream = factor(stream),
-         day = as.integer(day), 
-         migration = factor(migration), 
-         )
+         migration = factor(migration),
+         date = as.Date(date),
+         yday = lubridate::yday(date),
+         period = as.integer(as.Date("2015-06-30") - date)
+         ) |>
+  select(id, date, yday, period, stream, 
+         sex, length, migration)
 
-### Save data
+#### Save data
 saveRDS(fish, here_data("fish.rds"))
 
 
