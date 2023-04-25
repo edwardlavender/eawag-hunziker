@@ -109,6 +109,9 @@ if (is_glmer) {
 #### Create blank plot 
 # We define the vertical axis to range slightly beyond c(0, 1)
 # This enables us to add rugs at the top for males/females (see add_outcomes())
+png(here_fig("migration-prob.png"), 
+    height = 5, width = 7, units = "in", res = 600)
+pp <- par(oma = c(0, 0, 0, 4))
 paa <- list(lim = list(x = list(80, 240), 
                        y = c(-0.1, 1.1)),
             axis = list(x = list(NULL), 
@@ -187,7 +190,8 @@ if (is_glmer) {
 }
 
 #### Add observed proportions 
-add_proportions <- function(data, add_lines = FALSE, squash = 15) {
+squash_param <- 15
+add_proportions <- function(data, add_lines = FALSE, squash = squash_param) {
   if (add_lines) {
     # Add lines for the observed proportion of migrants with body size 
     lapply(split(data, data$sex), function(d) {
@@ -231,6 +235,31 @@ add_axes_labels <- function(line = 2, ...) {
 }
 add_axes_labels()
 
+#### Write legend(s)
+# (It is easier to manipulate these manually after the fact)
+px <- par(xpd = NA)
+cex.leg <- 1.1
+legend(250, 1,
+       title = "Sex",
+       legend = c("F", "M"), 
+       lty = 1, pch = 21, 
+       col = scales::alpha(cols, alpha_pt),
+       pt.bg = scales::alpha(cols, alpha_pt), 
+       bty = "n",
+       cex = cex.leg)
+ns <- c(10, 25, 50)
+legend(250, 0.6,
+       title = "N", title.font = 2,
+       legend = ns, 
+       pch = 21, 
+       col = scales::alpha(cols[2], alpha_pt),
+       pt.bg = scales::alpha(cols[2], alpha_pt), 
+       pt.cex = ns/squash_param,
+       y.intersp = 1.5,
+       cex = cex.leg, 
+       bty = "n")
+
+dev.off()
 
 #########################
 #### Visualise observations/predictions by stream
