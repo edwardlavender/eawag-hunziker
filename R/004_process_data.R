@@ -32,6 +32,9 @@ fish <- readxl::read_excel(here_data_raw("5. Real_residents_and_migs_below_SL243
 #### Process data
 
 #### Select and process relevant columns
+fish$stream <- as.character(fish$stream)
+fish$stream[fish$stream == "Klosterbach UR"] <- "Klosterbach (UR)"
+fish$stream[fish$stream == "Klosterbach SZ"] <- "Klosterbach (SZ)"
 fish <- 
   fish |> 
   mutate(id = row_number()) |>
