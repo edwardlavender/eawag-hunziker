@@ -8,6 +8,7 @@ data/*
 QGIS
 R/deprecated/
 doc/
+Rmd/
 fig/
 *.html
 *.pdf
