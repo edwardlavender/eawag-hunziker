@@ -49,29 +49,32 @@ pretty_blank <- function(mframe, predictor, response, ...) {
               xlab = "", ylab = "")
 }
 
-
-#' @title Generate model predictions per stream for a selected stream/predictor
+#' @title Generate model predictions 
 #' @details This function assumes the following objects exist in the workspace:
 #' * `fish` data.frame
 #' * `cols`
 #' 
-pred_by_stream <- function(mod, stream, predictor, mframe = NULL, n = 100) {
+gen_pred <- function(mod, stream = NULL, predictor, mframe = NULL, n = 100, 
+                     exclude = NULL, newdata.guaranteed = FALSE) {
   # Define data for stream 
   if (is.null(mframe)) mframe <- model.frame(mod)
-  mframe_for_stream <- mframe[mframe$stream == stream, ]
+  if (!is.null(stream)) {
+    mframe <- mframe[mframe$stream == stream, ]
+  }
   # Define a sequence of values of the predictor, separately for M/F, for prediction
-  ms <- mframe_for_stream[mframe_for_stream$sex == "M", predictor]
-  fs <- mframe_for_stream[mframe_for_stream$sex == "F", predictor]
+  ms <- mframe[mframe$sex == "M", predictor]
+  fs <- mframe[mframe$sex == "F", predictor]
   ms <- seq(min(ms), max(ms), length = n)
   fs <- seq(min(fs), max(fs), length = n)
   # Generate predictions for stream
   nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
                    predictor = c(fs, ms), 
-                   yday = median(fish$yday),
-                   stream = stream)
+                   yday = median(fish$yday))
+  if (!is.null(stream)) nd$stream <- stream
   colnames(nd)[colnames(nd) %in% "predictor"] <- predictor
   p <- predict(mod, newdata = nd, 
                se.fit = TRUE, 
+               exclude = exclude, newdata.guaranteed = newdata.guaranteed,
                type = "link")
   # Return dataframe with CIs
   pred <- nd
@@ -102,7 +105,6 @@ add_obs_by_sex <- function(mframe, predictor, response) {
   points(mframe[, predictor], mframe[, response], 
          col = scales::alpha(cols[mframe$sex], alpha_pt))
 }
-
 
 
 ###########################
