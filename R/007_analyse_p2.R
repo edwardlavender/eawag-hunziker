@@ -1,9 +1,9 @@
 #########################
 #########################
-#### analyse_h2.R
+#### analyse_p2.R
 
 #### Aims
-# 1) Analyse H2 (the size of migrants)
+# 1) Analyse P2 (the size of migrants)
 
 #### Prerequisites
 # 1) Process data for analysis (004_process_data.R)

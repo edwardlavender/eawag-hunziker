@@ -1,9 +1,9 @@
 #########################
 #########################
-#### analyse_h1.R
+#### analyse_p2.R
 
 #### Aims
-# 1) Analyse H1 (migration Pr ~ sex * size)
+# 1) Analyse P1 (migration Pr ~ sex * size)
 
 #### Prerequisites
 # 1) Process data for analysis (004_process_data.R)
