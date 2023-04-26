@@ -60,8 +60,15 @@ fish <-
   select(id, date, yday, period, stream, 
          sex, length, migration, migration_date, migration_yday)
 
+#### Define migrants
+migrants <- 
+  fish |> 
+  filter(migration == 1L) |> 
+  select(length, sex, migration_date, migration_yday, yday, stream) 
+
 #### Save data
 saveRDS(fish, here_data("fish.rds"))
+saveRDS(migrants, here_data("migrants.rds"))
 
 
 #### End of code.

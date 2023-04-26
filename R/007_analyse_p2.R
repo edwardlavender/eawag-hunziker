@@ -31,18 +31,12 @@ library(ggplot2)
 source(here_r("001_define_global_param.R"))
 source(here_r("002_define_helpers.R"))
 fish     <- readRDS(here_data("fish.rds"))
+migrants <- readRDS(here_data("migrants.rds"))
 
 
 #########################
 #########################
 #### Data exploration
-
-#### Define migrants
-migrants <- 
-  fish |> 
-  filter(migration == 1L) |> 
-  select(length, sex, migration_date, migration_yday, yday, stream) 
-# migrants$length <- migrants$length * 10 
 
 #### Check numbers of M/F migrants by stream
 migrants_by_stream <- 
