@@ -55,9 +55,9 @@ pretty_blank <- function(mframe, predictor, response, ...) {
 #' * `fish` data.frame
 #' * `cols`
 #' 
-pred_by_stream <- function(mod,  stream, predictor, n = 100) {
+pred_by_stream <- function(mod, stream, predictor, mframe = NULL, n = 100) {
   # Define data for stream 
-  mframe <- model.frame(mod)
+  if (is.null(mframe)) mframe <- model.frame(mod)
   mframe_for_stream <- mframe[mframe$stream == stream, ]
   # Define a sequence of values of the predictor, separately for M/F, for prediction
   ms <- mframe_for_stream[mframe_for_stream$sex == "M", predictor]
