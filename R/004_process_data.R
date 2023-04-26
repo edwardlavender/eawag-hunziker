@@ -51,7 +51,8 @@ fish <-
          migration = factor(migration),
          date = as.Date(date),
          yday = lubridate::yday(date),
-         period = as.integer(as.Date("2015-06-30") - date)
+         period = as.integer(as.Date("2015-06-30") - date), 
+         length = length/10
          ) |>
   select(id, date, yday, period, stream, 
          sex, length, migration)

@@ -73,11 +73,11 @@ plot(fish$yday, fish$length)
 cor(fish$yday, fish$length)
 
 #### Calculate the observed proportion of migrants by sex and size (ss)
-size_class_mm <- 15
+size_class_cm <- 1.5
 prop_ss <- 
   fish |>
   group_by(sex) |>
-  mutate(bin = cut(length, seq(min(length), max(length), by = size_class_mm))) |>
+  mutate(bin = cut(length, seq(min(length), max(length), by = size_class_cm))) |>
   ungroup() |>
   group_by(sex, bin) |>
   summarise(pr = length(which(migration == "1"))/n(), 
@@ -93,7 +93,7 @@ saveRDS(prop_ss, here_data("prop_ss.rds"))
 prop_sss <- 
   fish |>
   group_by(stream, sex) |>
-  mutate(bin = cut(length, seq(min(length), max(length), by = size_class_mm))) |>
+  mutate(bin = cut(length, seq(min(length), max(length), by = size_class_cm))) |>
   ungroup() |>
   group_by(stream, sex, bin) |>
   summarise(pr = length(which(migration == "1"))/n(), 

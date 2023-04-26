@@ -112,7 +112,7 @@ if (is_glmer) {
 png(here_fig("migration-prob.png"), 
     height = 5, width = 7, units = "in", res = 600)
 pp <- par(oma = c(0, 0, 0, 4))
-paa <- list(lim = list(x = list(80, 240), 
+paa <- list(lim = list(x = list(8, 24), 
                        y = c(-0.1, 1.1)),
             axis = list(x = list(NULL), 
                         y = list(at = seq(0, 1, 0.2))), 
@@ -231,7 +231,7 @@ add_outcomes(fish)
 
 #### Add axis labels
 add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-  mtext(side = 1, "Total length (mm)", cex = cex, line = line, ...)
+  mtext(side = 1, "Total length (cm)", cex = cex, line = line, ...)
   mtext(side = 2, "Probability of out-migration", cex = cex, line = line, ...)
 }
 add_axes_labels()
