@@ -95,7 +95,7 @@ if (is_glmer) {
   equatiomatic::extract_eq(mod)
   MuMIn::r.squaredGLMM(mod)
 } else {
-  plot(mod, pages = 1, scheme = 0)
+  plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
 }
 
 
@@ -361,11 +361,12 @@ if (is_glmer) {
 # ... ... i.e., simulate new values for the random effects
 # ... * re.form = NULL -- condition on all random effects
 # ... ... i.e., random effects are set on fitted values
-res <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
+mframe <- model.frame(mod)
+res    <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
 
 #### Check residuals versus predictors
-plotResiduals(res, form = fish$sex)
-plotResiduals(res, form = fish$length)
+plotResiduals(res, form = mframe$sex)
+plotResiduals(res, form = mframe$length)
 
 #### Run additional DHARMa checks
 testDispersion(res)
