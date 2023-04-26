@@ -166,7 +166,27 @@ pretty_predictions_1d(mod)
 do.call(gridExtra::grid.arrange, plot(ggpredict(mod), add.data = TRUE))
 
 #### Visualise predictions across all streams
-# TO DO
+response  <- "length"
+predictor <- "migration_yday"
+mframe <- model.frame(mod)
+
+#### Create plot
+mo <- seq(as.Date("2015-03-01"), as.Date("2015-06-01"), by = "months")
+jd <- lubridate::yday(mo)
+mo <- format(mo, "%b")
+xlim <- c(min(migrants$migration_yday) - 2, max(migrants$migration_yday))
+paa <- list(lim = list(x = xlim, y = NULL), 
+            axis = list(x = list(at = jd, labels = mo), 
+                        y = list(NULL)))
+pretty_blank(mframe, predictor, response, pretty_axis_args = paa)
+pred <- gen_pred(mod, predictor = predictor,
+                 exclude = "s(stream)", newdata.guaranteed = TRUE)
+add_error_envelopes_by_sex(pred, predictor)
+add_obs_by_sex(mframe, predictor, response)
+add_axes_labels <- function(cex = 1.25, line = 2, ...) {
+  mtext(side = 1, "Day of migration", cex = cex, line = line, ...)
+  mtext(side = 2, "Standard length (cm)", cex = cex, line = line, ...)
+}
 
 #### Zoom into stream-specific relationships
 # These plots are motivated by the diagnostic plots (see below)
@@ -216,27 +236,14 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   stream <- sort(unique(fish$stream))[i]
   
   #### Create plot
-  mo <- seq(as.Date("2015-03-01"), as.Date("2015-06-01"), by = "months")
-  jd <- lubridate::yday(mo)
-  mo <- format(mo, "%b")
-  xlim <- c(min(migrants$migration_yday) - 2, max(migrants$migration_yday))
-  
-  axis_ls <- pretty_blank(mframe, predictor, response, 
-                              pretty_axis_args = list(lim = list(x = xlim, y = NULL), 
-                                                      axis = list(x = list(at = jd, labels = mo), 
-                                                                  y = list(NULL)))
-                          )
-  pred <- pred_by_stream(mod, stream, predictor)
+  pretty_blank(mframe, predictor, response, pretty_axis_args = paa)
+  pred <- gen_pred(mod, stream, predictor)
   add_error_envelopes_by_sex(pred, predictor)
   add_obs_by_sex(mframe[mframe$stream == stream, ], predictor, response)
   mtext(side = 3, stream, font = 2)
 }) |> invisible()
 
 #### Add axes
-add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-  mtext(side = 1, "Day of migration", cex = cex, line = line, ...)
-  mtext(side = 2, "Standard length (cm)", cex = cex, line = line, ...)
-}
 add_axes_labels(outer = TRUE, line = 1)
 par(pp)
 
