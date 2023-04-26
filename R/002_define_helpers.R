@@ -11,10 +11,10 @@
 
 ###########################
 ###########################
-#### Define functions
+#### Define utils
 
 #' @title Define ranges as a string ('a–b')
-
+#' 
 str_range <- function(x) {
   if (inherits(x, "character")) {
     paste0(c(x[1], x[length(x)]), collapse = "–")
@@ -26,7 +26,7 @@ str_range <- function(x) {
 
 #' @title Parse bins from `cut()`
 #' @description This function parses bins from `cut()`. Bins are defined as the midpoint between each pair of values in the bin. 
-
+#' 
 parse_cut <- function(x) {
   x <- as.character(x)
   x <- substr(x, 2, nchar(x) - 1)
@@ -35,10 +35,84 @@ parse_cut <- function(x) {
   apply(xs, 1, mean)
 }
 
+
+###########################
+###########################
+#### Plotting helpers
+
+#' @title Create a blank plot
+#' 
+pretty_blank <- function(mframe, predictor, response, ...) {
+  pretty_plot(mframe[, predictor], mframe[, response],
+              ...,
+              type = "n", 
+              xlab = "", ylab = "")
+}
+
+
+#' @title Generate model predictions per stream for a selected stream/predictor
+#' @details This function assumes the following objects exist in the workspace:
+#' * `fish` data.frame
+#' * `cols`
+#' 
+pred_by_stream <- function(mod,  stream, predictor, n = 100) {
+  # Define data for stream 
+  mframe <- model.frame(mod)
+  mframe_for_stream <- mframe[mframe$stream == stream, ]
+  # Define a sequence of values of the predictor, separately for M/F, for prediction
+  ms <- mframe_for_stream[mframe_for_stream$sex == "M", predictor]
+  fs <- mframe_for_stream[mframe_for_stream$sex == "F", predictor]
+  ms <- seq(min(ms), max(ms), length = n)
+  fs <- seq(min(fs), max(fs), length = n)
+  # Generate predictions for stream
+  nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
+                   predictor = c(fs, ms), 
+                   yday = median(fish$yday),
+                   stream = stream)
+  colnames(nd)[colnames(nd) %in% "predictor"] <- predictor
+  p <- predict(mod, newdata = nd, 
+               se.fit = TRUE, 
+               type = "link")
+  # Return dataframe with CIs
+  pred <- nd
+  pred$fit <- as.numeric(p$fit)
+  pred$se.fit <- as.numeric(p$se.fit)
+  pred$lowerCI <- mod$family$linkinv(pred$fit - 1.96 * p$se.fit)
+  pred$upperCI <- mod$family$linkinv(pred$fit + 1.96 * p$se.fit)
+  pred$fit     <- mod$family$linkinv(pred$fit)
+  pred$col <- cols[pred$sex]
+  pred
+}
+
+
+#' @title Add error envelopes by sex
+#' 
+add_error_envelopes_by_sex <- function(pred, predictor) {
+  lapply(split(pred, pred$sex), function(d) {
+    add_error_envelope(d[, predictor], 
+                       ci = list(fit = d$fit, lowerCI = d$lowerCI, upperCI = d$upperCI), 
+                       add_fit = list(col = scales::alpha(cols[d$sex[1]], alpha_fit)), 
+                       add_ci = list(col = scales::alpha(cols[d$sex[1]], alpha_ci), border = FALSE))
+  })
+}
+
+#' @title Add observations
+#' 
+add_obs_by_sex <- function(mframe, predictor, response) {
+  points(mframe[, predictor], mframe[, response], 
+         col = scales::alpha(cols[mframe$sex], alpha_pt))
+}
+
+
+
+###########################
+###########################
+#### Statistics helpers
+
 #' @title Compare gam
 #' @description This function compares the predictions of a GAM for a hypothetical individual. The `s(stream)` effect is excluded. 
 #' @details This function is designed for the model(s) in analyse_h1.R
-
+#' 
 compare_gam <- function(model, newdata) {
   newdata$sex <- factor(newdata$sex, levels = c("F", "M"))
   p <- 
@@ -49,6 +123,7 @@ compare_gam <- function(model, newdata) {
     list_CIs(inv_link = mod$family$linkinv, plot_suggestions = FALSE)
   do.call(cbind, p)
 }
+
 
 #### End of code.
 ###########################
