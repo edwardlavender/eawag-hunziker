@@ -98,6 +98,9 @@ if (is_glmer) {
 } else {
   plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
 }
+sink(here_fig("tables", "migration-prob-mod.txt"))
+print(summary.gam(mod, digits = 1))
+sink()
 
 
 #########################

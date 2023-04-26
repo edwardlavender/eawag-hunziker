@@ -120,7 +120,7 @@ plot(mod_2, pages = 1, scheme = 1, all.terms = TRUE)
 # mod_3: smoothers for each stream
 mod_3 <- gam(length ~ 
                sex +
-               te(migration_yday, stream, bs = c("cc", "re")) + 
+               s(migration_yday, by = stream, bs = c("cc", "re")) + 
                s(yday, bs = "cc"),
              knots = list(yday = c(0, 365), 
                           migration_yday = c(0, 365)),
@@ -146,7 +146,7 @@ plot(mod_4, pages = 1, scheme = 1, all.terms = TRUE)
 # * mod_2 without the interaction is preferable to mod_1 (by ~2.2 AIC)
 # * Residual diagnostics are problematic for mod_2, 
 # ... e.g., evidence of overdispersion in gam.check() and issues in DHARMa resids
-data.frame(mod = 1:3, 
+data.frame(mod = c(1, 2, 3),
            aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3))) |>
   arrange(aic)
 AIC(mod_1) - AIC(mod_2)
@@ -156,7 +156,10 @@ mod <- mod_4
 summary(mod)
 AIC(mod)
 plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
-
+sink(here_fig("tables", "migrant-length-mod.txt"))
+print(summary.gam(mod, digits = 1))
+sink()
+  
 
 #########################
 #########################
