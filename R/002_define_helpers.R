@@ -101,9 +101,11 @@ add_error_envelopes_by_sex <- function(pred, predictor) {
 
 #' @title Add observations
 #' 
-add_obs_by_sex <- function(mframe, predictor, response) {
+add_obs_by_sex <- function(mframe, predictor, response, ...) {
   points(mframe[, predictor], mframe[, response], 
-         col = scales::alpha(cols[mframe$sex], alpha_pt))
+         pch = 21,
+         col = scales::alpha(cols[mframe$sex], alpha_pt), 
+         bg = scales::alpha(cols[mframe$sex], alpha_pt), ...)
 }
 
 

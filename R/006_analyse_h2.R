@@ -66,6 +66,7 @@ migrants |>
 ggplot(migrants) + 
   geom_histogram(aes(length)) + 
   facet_wrap(~stream)
+boxplot(length ~ stream, data = migrants, las = 2)
 
 #### Check migration dates of individuals by stream
 # There is evidence of earlier migration in some streams
@@ -162,15 +163,18 @@ plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
 #### Visualise observations and predictions
 
 #### Quick visuals
-pretty_predictions_1d(mod)
-do.call(gridExtra::grid.arrange, plot(ggpredict(mod), add.data = TRUE))
+if (FALSE) {
+  pretty_predictions_1d(mod)
+  do.call(gridExtra::grid.arrange, plot(ggpredict(mod), add.data = TRUE))
+}
 
 #### Visualise predictions across all streams
+png(here_fig("migrant-lengths.png"), 
+    height = 5, width = 6, units = "in", res = 600)
+pp <- par(oma = c(1, 1, 1, 1))
 response  <- "length"
 predictor <- "migration_yday"
 mframe <- model.frame(mod)
-
-#### Create plot
 mo <- seq(as.Date("2015-03-01"), as.Date("2015-06-01"), by = "months")
 jd <- lubridate::yday(mo)
 mo <- format(mo, "%b")
@@ -182,11 +186,26 @@ pretty_blank(mframe, predictor, response, pretty_axis_args = paa)
 pred <- gen_pred(mod, predictor = predictor,
                  exclude = "s(stream)", newdata.guaranteed = TRUE)
 add_error_envelopes_by_sex(pred, predictor)
-add_obs_by_sex(mframe, predictor, response)
+pt.cex <- 0.5
+add_obs_by_sex(mframe, predictor, response, cex = 0.5)
 add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-  mtext(side = 1, "Day of migration", cex = cex, line = line, ...)
+  mtext(side = 1, "Time of migration (months)", cex = cex, line = line, ...)
   mtext(side = 2, "Standard length (cm)", cex = cex, line = line, ...)
 }
+px <- par(xpd = NA)
+cex.leg <- 1.1
+legend(max(migrants$migration_yday) - 10, 25,
+       title = "Sex", title.font = 2,
+       legend = c("F", "M"), 
+       lty = 1, pch = 21, 
+       col = scales::alpha(cols, alpha_pt),
+       pt.bg = scales::alpha(cols, alpha_pt), 
+       pt.cex = pt.cex,
+       box.lty = 3,
+       cex = cex.leg)
+par(px)
+add_axes_labels()
+dev.off()
 
 #### Zoom into stream-specific relationships
 # These plots are motivated by the diagnostic plots (see below)
@@ -226,6 +245,8 @@ qqline(nd$partial)
 if (FALSE) gratia::draw(mod) |> plotly::ggplotly()
 
 #### Examine stream-specific predictions 
+png(here_fig("migrant-lengths-by-stream.png"), 
+    height = 5, width = 10, units = "in", res = 600)
 pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
 lapply(seq_len(length(unique(fish$stream))), function(i) {
   
@@ -246,6 +267,7 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
 #### Add axes
 add_axes_labels(outer = TRUE, line = 1)
 par(pp)
+dev.off()
 
 
 #########################

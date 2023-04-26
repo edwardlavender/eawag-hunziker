@@ -270,6 +270,8 @@ dev.off()
 # This code is currently only implemented for the GAM
 if (!is_glmer) {
   
+  png(here_fig("migration-prob-by-stream.png"), 
+      height = 5, width = 10, units = "in", res = 600)
   pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
   lapply(seq_len(length(unique(fish$stream))), function(i) {
 
@@ -295,6 +297,7 @@ if (!is_glmer) {
   #### Add axes
   add_axes_labels(outer = TRUE, line = 1)
   par(pp)
+  dev.off()
   
 }
 
