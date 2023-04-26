@@ -24,6 +24,7 @@ dv::clear()
 library(dv)
 library(dplyr)
 library(prettyGraphics)
+library(ggplot2)
 
 #### Load data
 source(here_r("001_define_global_param.R"))
@@ -103,6 +104,21 @@ prop_sss <-
   select(stream, sex, n, bin, length, pr, col) |>
   filter(!is.na(bin))
 saveRDS(prop_sss, here_data("prop_sss.rds"))
+
+#### For migrant individuals, check sizes and the timing of migration
+# Size distribution
+ggplot(fish) + 
+  geom_histogram(aes(length)) + 
+  facet_wrap(~sex + migration)
+# Timing 
+ggplot(fish) + 
+  geom_histogram(aes(date)) + 
+  facet_wrap(~sex + migration)
+# Timing statistics
+lapply(list(min, median, mean,  max), function(f) {
+  f(fish$migration_date[fish$migration == 1L])
+})
+
 
 
 #### End of code.
