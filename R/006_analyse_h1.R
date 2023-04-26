@@ -7,6 +7,7 @@
 
 #### Prerequisites
 # 1) Process data for analysis (004_process_data.R)
+# 2) Calculate observed proportions of migrants (005_analyse_data.R)
 
 
 #########################
