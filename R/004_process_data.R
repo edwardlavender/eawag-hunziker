@@ -43,7 +43,8 @@ fish <-
          stream,
          sex = sex, 
          length = SL,
-         migration = downmig.bin
+         migration = downmig.bin, 
+         migration_date = outmig.date, 
          ) |>
   mutate(id = factor(id), 
          sex = factor(sex),
@@ -52,10 +53,12 @@ fish <-
          date = as.Date(date),
          yday = lubridate::yday(date),
          period = as.integer(as.Date("2015-06-30") - date), 
-         length = length/10
+         length = length/10, 
+         migration_date = as.Date(migration_date),
+         migration_yday = lubridate::yday(migration_date)
          ) |>
   select(id, date, yday, period, stream, 
-         sex, length, migration)
+         sex, length, migration, migration_date, migration_yday)
 
 #### Save data
 saveRDS(fish, here_data("fish.rds"))
