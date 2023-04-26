@@ -86,7 +86,8 @@ prop_ss <-
   mutate(length = parse_cut(bin), 
          col = as.character(scales::alpha(cols, alpha_pt)[as.character(sex)])) |> 
   select(sex, n, bin, length, pr, col) |>
-  filter(!is.na(bin))
+  filter(!is.na(bin)) |> 
+  as.data.frame()
 saveRDS(prop_ss, here_data("prop_ss.rds"))
 
 #### Calculate the observed proportion of migrants by sex, size and stream (sss)
@@ -102,7 +103,8 @@ prop_sss <-
   mutate(length = parse_cut(bin), 
          col = as.character(scales::alpha(cols, alpha_pt)[as.character(sex)])) |> 
   select(stream, sex, n, bin, length, pr, col) |>
-  filter(!is.na(bin))
+  filter(!is.na(bin)) |> 
+  as.data.frame()
 saveRDS(prop_sss, here_data("prop_sss.rds"))
 
 #### For migrant individuals, check sizes and the timing of migration
