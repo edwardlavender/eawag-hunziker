@@ -285,7 +285,7 @@ if (!is_glmer) {
 
     #### Create plot
     pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
-    pred <- pred_by_stream(mod, stream, predictor, mframe = fish_for_stream)
+    pred <- gen_pred(mod, stream, predictor, mframe = fish_for_stream)
     add_error_envelopes_by_sex(pred, predictor)
     add_proportions(prop_sss[prop_sss$stream == stream, ], squash = 5)
     add_outcomes(fish_for_stream)
