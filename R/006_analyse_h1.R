@@ -106,22 +106,23 @@ if (is_glmer) {
 #########################
 #### Visualise predictions/observations across all streams
 
-#### Create blank plot 
-# We define the vertical axis to range slightly beyond c(0, 1)
-# This enables us to add rugs at the top for males/females (see add_outcomes())
+#### Set up plot
 png(here_fig("migration-prob.png"), 
     height = 5, width = 7, units = "in", res = 600)
 pp <- par(oma = c(0, 0, 0, 4))
+predictor <- "length"
+response  <- "pr"
+
+#### Create blank plot
+# We define the vertical axis to range slightly beyond c(0, 1)
+# This enables us to add rugs at the top for males/females (see add_outcomes())
 paa <- list(lim = list(x = list(8, 24), 
                        y = c(-0.1, 1.1)),
             axis = list(x = list(NULL), 
                         y = list(at = seq(0, 1, 0.2))), 
             control_axis = list(las = TRUE, cex.axis = 1.25)
             )
-pretty_plot(prop_ss$length, prop_ss$pr,
-            pretty_axis_args = paa,
-            type = "n", 
-            xlab = "", ylab = "")
+pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
 
 #### Add model predictions with SEs
 # Define sequence of body sizes for prediction
@@ -270,51 +271,24 @@ if (!is_glmer) {
   
   pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
   lapply(seq_len(length(unique(fish$stream))), function(i) {
-    
-    #### Define blank plot 
+
+    #### Define variables
+    response  <- "pr"
+    predictor <- "length"
+    mframe <- model.frame(mod)
     stream <- sort(unique(fish$stream))[i]
-    pretty_plot(prop_sss$length, prop_sss$pr,
-                pretty_axis_args = paa,
-                type = "n", 
-                xlab = "", ylab = "")
-    
-    #### Generate model predictions
-    # Define sizes for individuals males/females in stream
-    n <- 100
+    # Define fish_for_stream (rather than model.frame(mod)) because
+    # ... `fish_for_stream` contains 'length' 
+    # ... whereas model.frame(mod) contains log(length)
     fish_for_stream <- fish[fish$stream == stream, ]
-    ms <- fish_for_stream$length[fish_for_stream$sex == "M"]
-    fs <- fish_for_stream$length[fish_for_stream$sex == "F"]
-    ms <- seq(min(ms), max(ms), length = n)
-    fs <- seq(min(fs), max(fs), length = n)
-    # Generate predictions for stream
-    nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
-                     length = c(fs, ms), 
-                     yday = median(fish$yday),
-                     stream = stream)
-    p <- predict(mod, newdata = nd, 
-                 se.fit = TRUE, 
-                 type = "link")
-    pred <- nd
-    pred$fit <- as.numeric(p$fit)
-    pred$se.fit <- as.numeric(p$se.fit)
-    pred$lowerCI <- mod$family$linkinv(pred$fit - 1.96 * p$se.fit)
-    pred$upperCI <- mod$family$linkinv(pred$fit + 1.96 * p$se.fit)
-    pred$fit     <- mod$family$linkinv(pred$fit)
-    pred$col <- cols[pred$sex]
-    
-    #### Add error envelopes for males/females
-    lapply(split(pred, pred$sex), function(d) {
-      add_error_envelope(d$length, 
-                         ci = list(fit = d$fit, lowerCI = d$lowerCI, upperCI = d$upperCI), 
-                         add_fit = list(col = scales::alpha(cols[d$sex[1]], alpha_fit)), 
-                         add_ci = list(col = scales::alpha(cols[d$sex[1]], alpha_ci), border = FALSE))
-    })
-    
-    #### Add observations
+
+    #### Create plot
+    pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
+    pred <- pred_by_stream(mod, stream, predictor, mframe = fish_for_stream)
+    add_error_envelopes_by_sex(pred, predictor)
     add_proportions(prop_sss[prop_sss$stream == stream, ], squash = 5)
     add_outcomes(fish_for_stream)
     mtext(side = 3, stream, font = 2)
-    
   }) |> invisible()
   
   #### Add axes
@@ -366,7 +340,7 @@ res    <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
 
 #### Check residuals versus predictors
 plotResiduals(res, form = mframe$sex)
-plotResiduals(res, form = mframe$length)
+plotResiduals(res, form = mframe[, "log(length)"])
 
 #### Run additional DHARMa checks
 testDispersion(res)
