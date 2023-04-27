@@ -59,32 +59,28 @@ mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream),
 # ... a non linear relationship for examples at small sizes 
 # ... suggesting a GAM model would be more appropriate here. 
 # Structure
-# * We fit a model with group-level smoothness & different trends
-# ... i.e., 'Model I' in Pedersen et al. (2018)
 # * Length is scaled via log()
 # ... Scaling length is not necessary 
 # ... and makes little visible difference to predictions
 # ... but marginally improves model fit (AIC)
 # ... scale() produces poor fit on predictive plot 
 # * REML or ML recommended for fitting GAMs
+
+# mod_2: sex-specific smoothers with their own degree of wiggliness
+# ... This model is closest to our expectation that sexes may respond differently 
 mod_2 <- gam(migration ~ 
                sex + 
+               s(log(length), by = sex, bs = "tp") + 
                s(yday, bs = "cc") + 
-               s(log(length), by = sex, bs = "fs") + 
                s(stream, bs = "re"), 
              knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
              method = "REML")
 
 #### Compare model AICs
-# For the glmer model
-AIC(mod_1)
-# For the GAM model
-AIC(mod_2)
-# * log(length): 769.2234 ("ML"), 767.7716 ("REML"), little visual difference 
-# * length:      773.2707 ("ML"), 769.8456 ("REML"), little visual difference 
-# * scale(length): poorer fit visually apparent
-# * Adding yday improves model fit 
+data.frame(mod = c(1, 2),
+           aic = c(AIC(mod_1), AIC(mod_2))) |> 
+  arrange(aic)
 # Choose model
 mod <- mod_2
 is_glmer <- inherits(mod, "merMod")
@@ -120,9 +116,9 @@ response  <- "pr"
 #### Create blank plot
 # We define the vertical axis to range slightly beyond c(0, 1)
 # This enables us to add rugs at the top for males/females (see add_outcomes())
-paa <- list(lim = list(x = list(8, 24), 
+paa <- list(lim = list(x = lim_length, 
                        y = c(-0.1, 1.1)),
-            axis = list(x = list(NULL), 
+            axis = list(x = list(at = at_length), 
                         y = list(at = seq(0, 1, 0.2))), 
             control_axis = list(las = TRUE, cex.axis = 1.25)
             )
