@@ -21,6 +21,11 @@ alpha_pt  <- 0.75
 alpha_fit <- 0.50
 alpha_ci  <- 0.25
 
+#### Define length limits for plots
+# range(fish$length)
+lim_length <- c(8.5, 25)
+at_length  <- seq(10, 24, by = 4)
+
 
 #### End of code.
 #########################
