@@ -301,6 +301,34 @@ dev.off()
 
 #########################
 #########################
+#### Compare predictions for selected sizes
+
+#### Check data for selected streams
+# View(migrants[migrants$stream == "Klosterbach (SZ)", ])
+# View(migrants[migrants$stream == "Scheidgraben", ])
+
+#### Generate predictions for selected stream(s)
+stream <- "Giessen"
+comp <- 
+  rbind(
+    # Large females/males (early migration)
+    compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday), stream = stream)),
+    compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday), stream = stream)),
+    # Small females/males (late migration)
+    compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday), stream = stream)),
+    compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday), stream = stream))
+  ) |> 
+  round(digits = 0) |>
+  as.data.frame()
+
+comp[, 1] <- as.Date(comp[, 1], origin = "2015-01-01")
+comp[, 2] <- as.Date(comp[, 2], origin = "2015-01-01")
+comp[, 3] <- as.Date(comp[, 3], origin = "2015-01-01")
+comp
+
+
+#########################
+#########################
 #### Model diagnostics 
 
 #### GAM checks
