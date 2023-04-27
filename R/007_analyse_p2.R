@@ -288,6 +288,7 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   pred <- gen_pred(mod, stream, predictor, exclude = "s(stream)")
   add_error_envelopes_by_sex(pred, predictor)
   legend("bottomright", legend = paste0("n = ", nrow(mframe_for_stream)), bty = "n")
+  # legend("bottomright", legend = bquote(italic(n) * " = " * .(nrow(mframe_for_stream))), bty = "n")
   add_obs_by_sex(mframe_for_stream, predictor, response)
   mtext(side = 3, stream, font = 2)
 }) |> invisible()
