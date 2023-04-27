@@ -70,7 +70,7 @@ mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream),
 # ... This model is closest to our expectation that sexes may respond differently 
 mod_2 <- gam(migration ~ 
                sex + 
-               s(log(length), by = sex, bs = "tp") + 
+               s(log(length), by = sex, bs = "tp", m = 2) + 
                s(yday, bs = "cc") + 
                s(stream, bs = "re"), 
              knots = list(yday = c(0, 365)),
@@ -311,8 +311,8 @@ if (!is_glmer) {
 #### Compare predictions for selected sizes
 
 #### Compare predicted Pr migration for small/large males/females
-small <- 100
-large <- 150
+small <- 10 # cm
+large <- 15 # cm
 
 if (is_glmer) {
   
@@ -322,9 +322,11 @@ if (is_glmer) {
 } else {
   
   rbind(
+    # Small females/males 
     compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday))),
-    compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday))),
     compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday))),
+    # Large females/males
+    compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday))),
     compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday)))
   ) |> round(digits = 2)
     
