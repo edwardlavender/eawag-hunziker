@@ -61,7 +61,7 @@ fish |>
 #### Summary statistics
 
 #### Size distribution of fish 
-hist(fish$length)
+pretty_hist(fish$length, breaks = 100, xlim = c(8, 25))
 HDInterval::hdi(fish$length, allowSplit = TRUE)
 
 #### Count the number of streams/captures per stream
