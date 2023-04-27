@@ -126,7 +126,7 @@ mod_3 <- gam(migration_yday ~
 plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
 
 #### Compare models
-data.frame(mod = c(1, 2, 4),
+data.frame(mod = c(1, 2),
            aic = c(AIC(mod_1), AIC(mod_2))) |> 
   arrange(aic)
 mod <- mod_1
