@@ -283,6 +283,11 @@ if (!is_glmer) {
     # ... `fish_for_stream` contains 'length' 
     # ... whereas model.frame(mod) contains log(length)
     fish_for_stream <- fish[fish$stream == stream, ]
+    # Check size ranges
+    # Size ranges are shown via the rug (add_outcomes())
+    # But points mark proportions in size classes
+    range(fish_for_stream$length[fish_for_stream$sex == "M"])
+    range(fish_for_stream$length[fish_for_stream$sex == "F"])
 
     #### Create plot
     pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
