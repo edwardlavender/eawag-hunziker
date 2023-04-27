@@ -311,8 +311,6 @@ if (!is_glmer) {
 #### Compare predictions for selected sizes
 
 #### Compare predicted Pr migration for small/large males/females
-small <- 10 # cm
-large <- 15 # cm
 
 if (is_glmer) {
   

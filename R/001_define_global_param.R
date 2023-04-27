@@ -26,6 +26,11 @@ alpha_ci  <- 0.25
 lim_length <- c(8.5, 25)
 at_length  <- seq(10, 24, by = 4)
 
+#### Define 'small' and 'large' sizes for comparisons
+# The units here need to be the same is the data used to fit models
+small <- 10 # cm
+large <- 15 # cm
+
 
 #### End of code.
 #########################
