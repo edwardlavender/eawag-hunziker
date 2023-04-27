@@ -240,7 +240,7 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   
   #### Create plot
   pretty_blank(mframe, predictor, response, pretty_axis_args = paa)
-  pred <- gen_pred(mod, stream, predictor)
+  pred <- gen_pred(mod, stream, predictor, exclude = "s(stream)")
   add_error_envelopes_by_sex(pred, predictor)
   add_obs_by_sex(mframe[mframe$stream == stream, ], predictor, response)
   mtext(side = 3, stream, font = 2)
