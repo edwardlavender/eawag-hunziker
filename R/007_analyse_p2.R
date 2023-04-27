@@ -3,7 +3,7 @@
 #### analyse_p2.R
 
 #### Aims
-# 1) Analyse P2 (the size of migrants)
+# 1) Analyse P2 (the timing of migration)
 
 #### Prerequisites
 # 1) Process data for analysis (004_process_data.R)
@@ -38,6 +38,16 @@ migrants <- readRDS(here_data("migrants.rds"))
 #########################
 #### Data exploration
 
+#### Examine relationships among variables
+# Full matrix
+pairs(migrants)
+# Migration day ~ tagging date
+plot(migrants$yday, migrants$migration_date)
+cor(migrants$yday, migrants$migration_yday) # ~0.2
+# Migration day ~ sex and length
+plot(migrants$sex, migrants$migration_yday)
+plot(migrants$length, migrants$migration_yday)
+
 #### Check numbers of M/F migrants by stream
 migrants_by_stream <- 
   migrants |> 
@@ -53,7 +63,7 @@ barplot(migrants_by_stream$n,
         las = 2)
 par(pp)
 
-### Check size distributions of migrants by stream
+#### Check size distributions of migrants by stream
 migrants |> 
   group_by(stream, sex) |> 
   summarise(min(length), median(length), mean(length), max(length))
@@ -62,15 +72,11 @@ ggplot(migrants) +
   facet_wrap(~stream)
 boxplot(length ~ stream, data = migrants, las = 2)
 
-#### Check migration dates of individuals by stream
+#### Check distribution of migration dates by stream
 # There is evidence of earlier migration in some streams
 ggplot(migrants) + 
   geom_histogram(aes(migration_yday)) + 
   facet_wrap(~stream)
-
-#### Check relationships between tagging and migration dates
-plot(migrants$yday, migrants$migration_date)
-cor(migrants$yday, migrants$migration_yday) # ~0.2
 
 
 #########################
@@ -78,79 +84,58 @@ cor(migrants$yday, migrants$migration_yday) # ~0.2
 #### Implement modelling 
 
 #### Fit models
-# We will fit a model of length ~ sex * time of migration: 
-# * We expect larger individuals to migrate earlier
-# * Smaller individuals may migrate later because predation risk is higher
-# * This relationship may be steeper for females, i.e., 
-# ... while large individuals of both sexes may migrate early
-# ... as time passes, females of a given size may choose to migrate before
-# ... males of the equivalent size 
-# ... i.e., small females risk migration earlier
+# We will fit a model of day ~ sex * length
+# * We expect migration timing to be delayed (larger) for smaller individuals 
+# ... earlier migrants should be larger
+# ... later migrants may be smaller (minimise predation risk)
+# * We expect this decline to be faster for females
+# ... I.e., small females will risk migration sooner than males
+# ... of the equivalent size 
 
 # mod_1: Initial model
-mod_1 <- gam(length ~ 
+mod_1 <- gam(migration_yday ~ 
                sex +
-               s(migration_yday, by = sex, bs = c("cc", "fs")) + 
+               s(length, by = sex, bs = "tp") + 
                s(yday, bs = "cc") + 
                s(stream, bs = "re"), 
-             knots = list(yday = c(0, 365), 
-                          migration_yday = c(0, 365)),
-             family = gaussian, data = migrants, 
+             knots = list(yday = c(0, 365)),
+             family = gaussian(link = "identity"), data = migrants, 
              method = "REML")
 plot(mod_1, pages = 1, scheme = 1, all.terms = TRUE)
 
-# mod_2: mod_1 without the factor (sex) - smooth (migration day) interaction
-mod_2 <- gam(length ~ 
+# mod_2: Use log(length) as predictor
+mod_2 <- gam(migration_yday ~
                sex +
-               s(migration_yday, bs = "cc") + 
+               s(log(length), by = sex, bs = "tp") + 
                s(yday, bs = "cc") + 
                s(stream, bs = "re"), 
-             knots = list(yday = c(0, 365), 
-                          migration_yday = c(0, 365)),
-             family = gaussian, data = migrants, 
+             knots = list(yday = c(0, 365)),
+             family = gaussian(link = "identity"), data = migrants, 
              method = "REML")
 plot(mod_2, pages = 1, scheme = 1, all.terms = TRUE)
 
-# mod_3: smoothers for each stream
-mod_3 <- gam(length ~ 
+# mod_3: Model 1 but with Gamma likelihood
+mod_3 <- gam(migration_yday ~ 
                sex +
-               s(migration_yday, by = stream, bs = c("cc", "re")) + 
-               s(yday, bs = "cc"),
-             knots = list(yday = c(0, 365), 
-                          migration_yday = c(0, 365)),
-             family = gaussian, data = migrants, 
+               s(length, by = sex, bs = "tp") + 
+               s(yday, bs = "cc") + 
+               s(stream, bs = "re"), 
+             knots = list(yday = c(0, 365)),
+             family = Gamma(link = "log"), data = migrants, 
              method = "REML")
 plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
 
-# mod_4: mod_2 with Gamma likelihood 
-mod_4 <- gam(length ~ 
-               sex +
-               s(migration_yday, bs = "cc") + 
-               s(yday, bs = "cc") + 
-               s(stream, bs = "re"), 
-             knots = list(yday = c(0, 365), 
-                          migration_yday = c(0, 365)),
-             family = Gamma(link = "log"), data = migrants, 
-             method = "REML")
-plot(mod_4, pages = 1, scheme = 1, all.terms = TRUE)
-
-#### Compare models 
-# Check AIC (for models that share the same likelihood)
-# * mod_3 has lowest AIC, but predictions look too wiggly (overfitting)
-# * mod_2 without the interaction is preferable to mod_1 (by ~2.2 AIC)
-# * Residual diagnostics are problematic for mod_2, 
-# ... e.g., evidence of overdispersion in gam.check() and issues in DHARMa resids
-data.frame(mod = c(1, 2, 3),
-           aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3))) |>
+#### Compare models
+data.frame(mod = c(1, 2, 4),
+           aic = c(AIC(mod_1), AIC(mod_2))) |> 
   arrange(aic)
-AIC(mod_1) - AIC(mod_2)
+mod <- mod_1
 
 ##### Check model summary 
-mod <- mod_4
 summary(mod)
 AIC(mod)
 plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
-sink(here_fig("tables", "migrant-length-mod.txt"))
+sink(here_fig("tables", "migration-timing-mod.txt"))
 print(summary.gam(mod, digits = 1))
 sink()
   
@@ -166,19 +151,19 @@ if (FALSE) {
 }
 
 #### Visualise predictions across all streams
-png(here_fig("migrant-lengths.png"), 
+png(here_fig("migration-timing.png"), 
     height = 5, width = 6, units = "in", res = 600)
-pp <- par(oma = c(1, 1, 1, 1))
-response  <- "length"
-predictor <- "migration_yday"
+pp <- par(oma = c(1, 1, 1, 2))
+response  <- "migration_yday"
+predictor <- "length"
 mframe <- model.frame(mod)
 mo <- seq(as.Date("2015-03-01"), as.Date("2015-06-01"), by = "months")
 jd <- lubridate::yday(mo)
 mo <- format(mo, "%b")
-xlim <- c(min(migrants$migration_yday) - 2, max(migrants$migration_yday))
-paa <- list(lim = list(x = xlim, y = NULL), 
-            axis = list(x = list(at = jd, labels = mo), 
-                        y = list(NULL)))
+ylim <- c(min(migrants$migration_yday) - 2, max(migrants$migration_yday))
+paa <- list(lim = list(x = lim_length, y = ylim), 
+            axis = list(x = list(at = at_length), 
+                        y = list(at = jd, labels = mo)))
 pretty_blank(mframe, predictor, response, pretty_axis_args = paa)
 pred <- gen_pred(mod, predictor = predictor,
                  exclude = "s(stream)", newdata.guaranteed = TRUE)
@@ -186,12 +171,12 @@ add_error_envelopes_by_sex(pred, predictor)
 pt.cex <- 0.5
 add_obs_by_sex(mframe, predictor, response, cex = 0.5)
 add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-  mtext(side = 1, "Time of migration (months)", cex = cex, line = line, ...)
-  mtext(side = 2, "Standard length (cm)", cex = cex, line = line, ...)
+  mtext(side = 1, "Standard length (cm)", cex = cex, line = line, ...)
+  mtext(side = 2, "Time of migration (months)", cex = cex, line = line, ...)
 }
 px <- par(xpd = NA)
 cex.leg <- 1.1
-legend(max(migrants$migration_yday) - 10, 25,
+legend(25, 180,
        title = "Sex", title.font = 2,
        legend = c("F", "M"), 
        lty = 1, pch = 21, 
@@ -214,7 +199,7 @@ dev.off()
 # The intercept/average value of the smooth is higher in Schützenbrunnen
 # than in the other streams.
 plot(ggpredict(mod, terms = c("sex", "stream")), add.data = TRUE)
-plot(ggpredict(mod, terms = c("migration_yday", "stream", "sex")), add.data = TRUE)
+plot(ggpredict(mod, terms = c("length", "stream", "sex")), add.data = TRUE)
 plot(ggpredict(mod, terms = c("yday", "stream")), add.data = TRUE)
 
 #### Examine the partial effect of stream
@@ -242,14 +227,14 @@ qqline(nd$partial)
 if (FALSE) gratia::draw(mod) |> plotly::ggplotly()
 
 #### Examine stream-specific predictions 
-png(here_fig("migrant-lengths-by-stream.png"), 
+png(here_fig("migration-timing-by-stream.png"), 
     height = 5, width = 10, units = "in", res = 600)
 pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
 lapply(seq_len(length(unique(fish$stream))), function(i) {
   
   #### Define variables
-  response  <- "length"
-  predictor <- "migration_yday"
+  response  <- "migration_yday"
+  predictor <- "length"
   mframe <- model.frame(mod)
   stream <- sort(unique(fish$stream))[i]
   
@@ -272,24 +257,22 @@ dev.off()
 #### Model diagnostics 
 
 #### GAM checks
-# * mod_2: shows evidence of overdispersion
-# * mod_4: also overdispersion, but less strong
+# * mod_1: shows some evidence of overdispersion
+# * mod_3: overdispersion is somewhat less (but diagnostics below are worse)
 pp <- par(mfrow = c(2, 2))
 gam.check(mod, rep = 1e3)
 par(pp)
 k.check(mod)
 
 #### Simulate DHARMa residuals
-# mod_2: evidence of overdispersion and other issues
-# mod_4: residual diagnostics appear better, 
-# ... although there is still some issue e.g.,
-# ... pattern in residual versus predicted vals
+# mod_1: ok. 
+# mod_2: some issues.
 mframe <- model.frame(mod)
 res    <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
 
 #### Check residuals versus predictors
 plotResiduals(res, form = mframe$sex)
-plotResiduals(res, form = mframe[, "migration_yday"])
+plotResiduals(res, form = mframe[, "length"])
 plotResiduals(res, form = mframe[, "yday"])
 
 #### Run additional DHARMa checks

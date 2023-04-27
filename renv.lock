@@ -159,6 +159,20 @@
       ],
       "Hash": "e749cae40fa9ef469b6050959517453c"
     },
+    "RcppArmadillo": {
+      "Package": "RcppArmadillo",
+      "Version": "0.12.2.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "39aed0e5fbb0b775a1752ad7813fc56c"
+    },
     "RcppEigen": {
       "Package": "RcppEigen",
       "Version": "0.3.3.9.3",
@@ -255,6 +269,21 @@
         "R"
       ],
       "Hash": "543776ae6848fde2f48ff3816d0628bc"
+    },
+    "basicPlotteR": {
+      "Package": "basicPlotteR",
+      "Version": "0.0.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "basicPlotteR",
+      "RemoteUsername": "JosephCrispell",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "4628140c8eac2adac70d85632b9d0966a374e4bf",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "55889eaae302ee5b1a4294c66ee8c2be"
     },
     "boot": {
       "Package": "boot",
@@ -935,6 +964,36 @@
       ],
       "Hash": "4f2596dfb05dac67b9dc558e5c6fba2e"
     },
+    "gratia": {
+      "Package": "gratia",
+      "Version": "0.8.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "dplyr",
+        "ggplot2",
+        "grDevices",
+        "grid",
+        "lifecycle",
+        "mgcv",
+        "mvnfast",
+        "nlme",
+        "patchwork",
+        "pillar",
+        "purrr",
+        "rlang",
+        "stats",
+        "stringr",
+        "tibble",
+        "tidyr",
+        "tidyselect",
+        "tools",
+        "vctrs"
+      ],
+      "Hash": "aac574583d985c85f803e25089b35fe5"
+    },
     "gridExtra": {
       "Package": "gridExtra",
       "Version": "2.3",
@@ -1436,6 +1495,18 @@
       ],
       "Hash": "6dfe8bf774944bd5595785e3229d8771"
     },
+    "mvnfast": {
+      "Package": "mvnfast",
+      "Version": "0.2.8",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "BH",
+        "Rcpp",
+        "RcppArmadillo"
+      ],
+      "Hash": "e65cac8e8501bdfbdca0412c37bb18c9"
+    },
     "nlme": {
       "Package": "nlme",
       "Version": "3.1-162",
@@ -1495,6 +1566,22 @@
         "utils"
       ],
       "Hash": "1cf5a54cfc5dcb0b84037acfd93cbca7"
+    },
+    "patchwork": {
+      "Package": "patchwork",
+      "Version": "1.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "gtable",
+        "stats",
+        "utils"
+      ],
+      "Hash": "63b611e9d909a9ed057639d9c3b77152"
     },
     "pillar": {
       "Package": "pillar",
@@ -2223,6 +2310,27 @@
         "R"
       ],
       "Hash": "1fe17157424bb09c48a8b3b550c753bc"
+    },
+    "utils.add": {
+      "Package": "utils.add",
+      "Version": "0.1.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "edwardlavender",
+      "RemoteRepo": "utils.add",
+      "RemoteRef": "master",
+      "RemoteSha": "709260ea3d9f5c33cd8210ec1d4139bf2790386e",
+      "Requirements": [
+        "dplyr",
+        "lubridate",
+        "plyr",
+        "prettyGraphics",
+        "rlist",
+        "stringi",
+        "tidyr"
+      ],
+      "Hash": "f4577fcf942e0a68295fd47dabed03c0"
     },
     "vctrs": {
       "Package": "vctrs",
