@@ -192,7 +192,7 @@ if (is_glmer) {
 }
 
 #### Add observed proportions 
-squash_param <- 15
+squash_param <- 27
 add_proportions <- function(data, add_lines = FALSE, squash = squash_param) {
   if (add_lines) {
     # Add lines for the observed proportion of migrants with body size 
@@ -241,7 +241,7 @@ add_axes_labels()
 # (It is easier to manipulate these manually after the fact)
 px <- par(xpd = NA)
 cex.leg <- 1.1
-legend(250, 1,
+legend(25, 1,
        title = "Sex", title.font = 2,
        legend = c("F", "M"), 
        lty = 1, pch = 21, 
@@ -250,7 +250,7 @@ legend(250, 1,
        bty = "n",
        cex = cex.leg)
 ns <- c(10, 25, 50)
-legend(250, 0.6,
+legend(25, 0.6,
        title = "Sample (N)", title.font = 2,
        legend = ns, 
        pch = 21, 
@@ -319,6 +319,7 @@ if (is_glmer) {
   
 } else {
   
+  # Predicted migration pr for small/large males/females
   rbind(
     # Small females/males 
     compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday))),
@@ -328,6 +329,10 @@ if (is_glmer) {
     compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday)))
   ) |> round(digits = 2)
     
+  # How much more likely are small females likely to migrate than smaller males? 
+  # ... Difference in fitted Pr is 0.30 (females) versus 0.15 (males)
+  # ... Difference in CIs 
+  
 }
 
 
