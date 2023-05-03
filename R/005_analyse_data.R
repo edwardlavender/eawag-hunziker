@@ -61,8 +61,27 @@ fish |>
 #### Summary statistics
 
 #### Size distribution of fish 
-pretty_hist(fish$length, breaks = 100, xlim = c(8, 25))
+png(here_fig("fish-size-distribution.png"), 
+    height = 4, width = 5, units = "in", res = 600)
+bw <- 0.2
+bks <- seq(plyr::round_any(min(fish$length), bw, floor), 
+           plyr::round_any(max(fish$length), bw, ceiling), 
+           by = bw)
+h <- hist(fish$length, breaks = bks, 
+     xlim = range(bks), axes = FALSE,
+     xlab = "", ylab = "", main = "",
+     col = scales::alpha("lightgrey", 0.75))
+axis(side = 1, 
+     at = prettyGraphics::pretty_seq(bks, lim = range(bks), pretty = list(n = 10))$at, 
+     pos = 0)
+axis(side = 2, 
+     at = prettyGraphics::pretty_seq(h$counts, pretty = list(n = 10))$at,
+     pos = min(bks), 
+     las = TRUE)
+mtext(side = 1, "Standard length (cm)", line = 2)
+mtext(side = 2, "Frequency", line = 2)
 HDInterval::hdi(fish$length, allowSplit = TRUE)
+dev.off()
 
 #### Count the number of streams/captures per stream
 length(unique(fish$stream))
