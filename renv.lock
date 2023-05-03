@@ -1181,6 +1181,28 @@
       ],
       "Hash": "8954069286b4b2b0d023d1b288dce978"
     },
+    "janitor": {
+      "Package": "janitor",
+      "Version": "2.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "dplyr",
+        "hms",
+        "lifecycle",
+        "lubridate",
+        "magrittr",
+        "purrr",
+        "rlang",
+        "snakecase",
+        "stringi",
+        "stringr",
+        "tidyr",
+        "tidyselect"
+      ],
+      "Hash": "5baae149f1082f466df9d1442ba7aa65"
+    },
     "jquerylib": {
       "Package": "jquerylib",
       "Version": "0.1.4",
@@ -1689,7 +1711,7 @@
       "RemoteUsername": "edwardlavender",
       "RemoteRepo": "prettyGraphics",
       "RemoteRef": "master",
-      "RemoteSha": "abf95d2abe8d3c87077db61e127777dc1b88df2a",
+      "RemoteSha": "d2f5b8d50bbaa5ed9ece60e5195b5db42342660b",
       "Requirements": [
         "R",
         "TeachingDemos",
@@ -1710,7 +1732,7 @@
         "sp",
         "stringr"
       ],
-      "Hash": "517933ed86163e7e915bb8d2edb06638"
+      "Hash": "942fe34c0f8c90d6fedc04a12585810e"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -2071,6 +2093,18 @@
         "utils"
       ],
       "Hash": "e418b532e9bb4eb22a714b9a9f1acee7"
+    },
+    "snakecase": {
+      "Package": "snakecase",
+      "Version": "0.11.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "stringi",
+        "stringr"
+      ],
+      "Hash": "4079070fc210c7901c0832a3aeab894f"
     },
     "sourcetools": {
       "Package": "sourcetools",
