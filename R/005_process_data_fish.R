@@ -25,10 +25,9 @@ library(dplyr)
 #### Load data
 fish <- readxl::read_excel(here_data_raw("5. Real_residents_and_migs_below_SL243mm_without_N2&LRN.xlsx"))
 pit <- readxl::read_excel(here_data_raw("pit.xlsx"))
-tag_sites <- readxl::read_excel(here_data_raw("Coor_Dist_Sections_VWSTributaries.xlsx"), 
-                                sheet = "2018")
 tag_sites_abb <- readxl::read_excel(here_data_raw("stream-abbreviations.xlsx"), 
                                     sheet = "data")
+tag_sites_dist <- readRDS(here_data_raw("distances-to-lake.rds"))
 # View(fish)
 
 
@@ -147,56 +146,34 @@ table(pit$hatchery)
 
 #########################
 #########################
-#### Define coordinates of tagging sites 
+#### Define tagging site locations relative to the lake
 
 #### Clean tag sites data.frame
 tag_sites_abb <-
   tag_sites_abb |>
   janitor::clean_names()
-tag_sites <- 
-  tag_sites |> 
-  janitor::clean_names() |> 
-  mutate(stream = tag_sites_abb$location[match(stream, tag_sites_abb$code)]) |>
-  mutate(ss = paste(stream, section))
 
-#### Check tagging sites data avilability for tagged fish
+#### Extract coordinates and distances from the lake
+tag_sites_dist <- 
+  tag_sites_dist |> 
+  mutate(stream = tag_sites_abb$location[match(stream, tag_sites_abb$code)],
+         ss = paste(stream, section))
 fish <- 
   fish |> 
   mutate(ss = paste(stream, section)) 
-sort(unique(fish$ss))
-# Are coordinates available for all sites? Yes. 
-all(fish$ss %in% tag_sites$ss)
-# fish$stream[!(fish$stream %in% tag_sites_abb$location)] |> unique()
-# fish$ss[!(fish$ss %in% tag_sites$ss)] |> unique() |> sort()
-
-#### Extract coordinates and distances from the lake
-# Process section start/end coordinates
-start <- stringr::str_split_fixed(tag_sites$coordinate_start, ",", 2)
-start <- cbind(start[, 2], start[, 1]) |> as.data.frame()
-for (i in 1:2) {
-  start[, i] <- stringr::str_trim(start[, i]) |> as.numeric()
-}
-end   <- stringr::str_split_fixed(tag_sites$coordinate_end, ",", 2)
-end   <- cbind(end[, 2], end[, 1]) |> as.data.frame()
-for (i in 1:2) {
-  end[, i] <- stringr::str_trim(end[, i]) |> as.numeric()
-}
-# Define section midpoints
-mid <- 
-  apply(cbind(start, end), 1, function(x) {
-    mid_x <- mean(c(x[1], x[3]), na.rm = TRUE)
-    mid_y <- mean(c(x[2], x[4]), na.rm = TRUE)
-    cbind(mid_x, mid_y)
-  }) |> 
-  t()
-# Define coordinates 
-fish$tag_x <- mid[, 1]
-fish$tag_y <- mid[, 2]
-fish$site_to_lake <- tag_sites$distance_m[match(fish$ss, tag_sites$ss)]
-unique(fish$stream)
+# Checks 
+stopifnot(!any(is.na(tag_sites_dist$stream)))
+head(tag_sites_dist$ss)
+head(fish$ss)
+unique(fish$ss) |> sort()
+# fish$ss[!(fish$ss %in% tag_sites_dist$ss)] |> unique() |> sort()
+stopifnot(all(fish$ss %in% tag_sites_dist$ss))
 
 #### Calculate distances to lake
-# TO DO.
+fish <- 
+  fish |> 
+  mutate(dist_to_lake = tag_sites_dist$dist[match(ss, tag_sites_dist$ss)])
+stopifnot(!any(is.na(fish$dist_to_lake)))
 
 
 #########################
