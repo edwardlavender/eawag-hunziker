@@ -78,12 +78,6 @@ any(is.na(fish$pit_id))
 # No PITs in fish are duplicated
 any(duplicated(fish$pit_id))
 
-#### Define migrants
-migrants <- 
-  fish |> 
-  filter(migration == 1L) |> 
-  select(length, sex, migration_date, migration_yday, yday, stream) 
-
 
 #########################
 #########################
@@ -174,6 +168,17 @@ fish <-
   fish |> 
   mutate(dist_to_lake = tag_sites_dist$dist[match(ss, tag_sites_dist$ss)])
 stopifnot(!any(is.na(fish$dist_to_lake)))
+
+
+#########################
+#########################
+#### Define migrants
+
+#### Define migrants
+migrants <- 
+  fish |> 
+  filter(migration == 1L) |> 
+  select(length, sex, migration_date, migration_yday, yday, stream, dist_to_lake) 
 
 
 #########################
