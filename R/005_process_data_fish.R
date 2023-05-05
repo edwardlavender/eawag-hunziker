@@ -181,6 +181,7 @@ stopifnot(!any(is.na(fish$dist_to_lake)))
 #### Save data
 
 #### Save data
+saveRDS(tag_sites_dist, here_data("distances-to-lake.rds"))
 saveRDS(fish, here_data("fish.rds"))
 saveRDS(migrants, here_data("migrants.rds"))
 
