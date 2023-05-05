@@ -163,11 +163,21 @@ unique(fish$ss) |> sort()
 # fish$ss[!(fish$ss %in% tag_sites_dist$ss)] |> unique() |> sort()
 stopifnot(all(fish$ss %in% tag_sites_dist$ss))
 
-#### Calculate distances to lake
-fish <- 
-  fish |> 
-  mutate(dist_to_lake = tag_sites_dist$dist[match(ss, tag_sites_dist$ss)])
+#### Calculate distances to lake/antenna
+# Distances of antenna to lake
+dist_ant <- 
+  tag_sites_dist |> 
+  filter(stream %in% fish$stream) |> 
+  filter(section == 1) |>
+  select(stream, dist_to_lake)
+fish$dist_to_lake_from_ant <- dist_ant$dist_to_lake[match(fish$stream, dist_ant$stream)]
+stopifnot(!any(is.na(fish$dist_to_lake_from_ant)))
+# Distances of tagging sites to lake
+fish$dist_to_lake_from_tag <- tag_sites_dist$dist[match(fish$ss, tag_sites_dist$ss)]
 stopifnot(!any(is.na(fish$dist_to_lake)))
+# Distances of tagging sections to antenna
+fish$dist_to_ant_from_tag <- fish$dist_to_lake_from_tag - fish$dist_to_lake_from_ant
+stopifnot(!any(is.na(fish$dist_to_ant_from_tag)))
 
 
 #########################
@@ -178,7 +188,8 @@ stopifnot(!any(is.na(fish$dist_to_lake)))
 migrants <- 
   fish |> 
   filter(migration == 1L) |> 
-  select(length, sex, migration_date, migration_yday, yday, stream, dist_to_lake) 
+  select(length, sex, migration_date, migration_yday, yday, stream, section,
+         dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag) 
 
 
 #########################
