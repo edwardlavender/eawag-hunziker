@@ -30,7 +30,7 @@ library(tictoc)
 
 #### Load data
 # Define connection to KML files
-con <- here_data_raw("spatial", "streams")
+con <- here_data_raw("spatial", "streams", "linestrings")
 # Define stream names
 stream_abbr <- 
   con |> 
