@@ -21,10 +21,12 @@ dv::clear()
 
 #### Essential packages
 library(dv)
-library(raster)
-library(sf)
-library(riverdist)
 library(dplyr)
+library(sf)
+library(raster)
+library(riverdist)
+library(ggplot2) 
+library(tictoc)
 
 #### Load data
 # Define connection to KML files
@@ -44,16 +46,18 @@ manual <- FALSE
 
 #########################
 #########################
-#### Calculate distances to the lake
+#### Calculate distances to the lake (~6 s)
 
+tic()
 distances <- 
-  pbapply::pblapply(stream_abbr, function(name) {
+  lapply(stream_abbr, function(name) {
     
     #### Define stream & stream sections
-    # name     <- "SBU"
+    # name     <- "SGN"
+    message(name)
     stream   <- 
       file.path(con, paste0(name, "-linestrings.kml")) |> 
-      st_read() |> 
+      st_read(quiet = TRUE) |> 
       janitor::clean_names() |> 
       # Fix stream order
       # This is essential for correct functioning of {riverdist}
@@ -68,12 +72,42 @@ distances <-
     # * 1 = the lake to the antenna
     # * 2 = section 1 etc.
     length(stream$description)
+    if (manual) {
+      # plot(stream["description"])
+      ggplot(stream) + 
+        geom_sf(aes(colour = factor(description))) + 
+        ggsflabel::geom_sf_label(aes(label = description))
+      }
     
     #### Format stream for distance calculations with {riverdist}
-    stream <- st_transform(stream, 2056)
-    stream <- as(stream, "Spatial")
+    # Define stream in UTM
+    stream    <- st_transform(stream, 2056)
+    # Pull out lengths (m)
+    section_lengths <- st_length(stream) |> as.numeric()
+    # Convert to spatial 
+    stream    <- as(stream, "Spatial")
     if (manual) plot(stream)
-    net <- line2network(stream, tolerance = 30)
+    # Define network
+    # ... It is important that the tolerance is less than the minimum section length
+    tol <- ifelse(min(section_lengths) < 30, 10, 30)
+    stopifnot(tol < min(section_lengths))
+    net_file <- here_data_raw("spatial", "streams", "networks", paste0(name, ".rds"))
+    if (!file.exists(net_file)) {
+      # Define network 
+      net <- line2network(stream, tolerance = tol)
+      # (optional) clean up network
+      # This is necessary for: 
+      # a) SGN
+      # ... The connection between 12 and 8 (as defined by {riverdist})
+      # ... is not properly recognised because connections need to 
+      # ... start/end at a specific segment.
+      # ... This is fixed by moving the start of section 12 a few m 
+      # ... so it starts at the end of section 7. 
+      # net <- cleanup(net)
+      saveRDS(net, net_file) 
+    } else {
+      net <- readRDS(net_file)
+    }
     if (manual) plot(net)
     
     #### Calculate distances
@@ -92,6 +126,7 @@ distances <-
     sections <- ids[2:length(ids)]
     dist_lake_to_section <- 
       sapply(sections, function(end) {
+        print(paste0("... ", end))
         riverdistance(startseg = 1, endseg = end,
                       startvert = 1, endvert = 1, 
                       rivers = net, 
@@ -113,6 +148,7 @@ distances <-
                dist_to_lake = dist_lake_to_section)
   
 }) |> dplyr::bind_rows()
+toc()
 
 #### Save calculated distances (m) 
 saveRDS(distances, here_data_raw("distances-to-lake.rds"))
