@@ -42,20 +42,18 @@ tag_sites_dist <- readRDS(here_data("distances-to-lake.rds"))
 dist_ant <- 
   tag_sites_dist |> 
   filter(stream %in% fish$stream) |> 
-  filter(section == 1) |>
+  filter(section == "1") |>
   select(stream, dist_to_lake)
-fish$dist_to_lake_from_ant <- dist_ant$dist_to_lake[match(fish$stream, dist_ant$stream)]
 utils.add::basic_stats(dist_ant$dist_to_lake)
 # Distances of tagging sections to the lake
 dist_tag <- 
   fish |> 
   group_by(stream, section) |>
   slice(1L) |>
-  select(stream, section, dist_to_lake_from_ant, dist_to_lake)
-utils.add::basic_stats(dist_tag$dist_to_lake)
+  select(stream, section, dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag)
+utils.add::basic_stats(dist_tag$dist_to_lake_from_tag)
 # Distances of tagging sections to antenna
-dist_tag$dist_to_ant <- dist_tag$dist_to_lake - dist_tag$dist_to_lake_from_ant
-utils.add::basic_stats(dist_tag$dist_to_ant)
+utils.add::basic_stats(dist_tag$dist_to_ant_from_tag)
 
 #### Summary table of number of sampled fish per stream
 fish |> 

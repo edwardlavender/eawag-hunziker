@@ -132,7 +132,7 @@ table(recorded)
 pit <- pit |> filter(fec_id %in% fish$fec_id)
 # Pull information
 ind <- match(fish$fec_id, pit$fec_id)
-fish$section <- pit$section[ind]
+fish$section <- factor(pit$section[ind])
 # Final checks
 # * All wild fish
 table(pit$hatchery)
@@ -168,7 +168,7 @@ stopifnot(all(fish$ss %in% tag_sites_dist$ss))
 dist_ant <- 
   tag_sites_dist |> 
   filter(stream %in% fish$stream) |> 
-  filter(section == 1) |>
+  filter(section == "1") |>
   select(stream, dist_to_lake)
 fish$dist_to_lake_from_ant <- dist_ant$dist_to_lake[match(fish$stream, dist_ant$stream)]
 stopifnot(!any(is.na(fish$dist_to_lake_from_ant)))
