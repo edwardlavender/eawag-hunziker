@@ -972,6 +972,41 @@
       ],
       "Hash": "3a147ee02e85a8941aad9909f1b43b7b"
     },
+    "ggrepel": {
+      "Package": "ggrepel",
+      "Version": "0.9.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "ggplot2",
+        "grid",
+        "rlang",
+        "scales",
+        "withr"
+      ],
+      "Hash": "92edfac53774706b4d6099f3ee6f6306"
+    },
+    "ggsflabel": {
+      "Package": "ggsflabel",
+      "Version": "0.0.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "ggsflabel",
+      "RemoteUsername": "yutannihilation",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "846ede0152cbe2304cefe4f5b84eb4e3c79fcb01",
+      "Requirements": [
+        "R",
+        "ggplot2",
+        "ggrepel",
+        "rlang",
+        "sf"
+      ],
+      "Hash": "67e1ee83d323de1e7c4f27453a031ea6"
+    },
     "gh": {
       "Package": "gh",
       "Version": "1.4.0",
@@ -1660,17 +1695,6 @@
         "utils"
       ],
       "Hash": "63b611e9d909a9ed057639d9c3b77152"
-    },
-    "pbapply": {
-      "Package": "pbapply",
-      "Version": "1.7-0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "parallel"
-      ],
-      "Hash": "9e4fab5a4af145938025ac50803984e6"
     },
     "pillar": {
       "Package": "pillar",
@@ -2386,6 +2410,17 @@
         "vctrs"
       ],
       "Hash": "a84e2cc86d07289b3b6f5069df7a004c"
+    },
+    "tictoc": {
+      "Package": "tictoc",
+      "Version": "1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "methods"
+      ],
+      "Hash": "2c6c63f3f4f103d41cb2aae1ab1c7ce1"
     },
     "tidyr": {
       "Package": "tidyr",
