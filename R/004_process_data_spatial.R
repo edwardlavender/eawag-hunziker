@@ -21,107 +21,101 @@ dv::clear()
 
 #### Essential packages
 library(dv)
+library(raster)
 library(sf)
+library(riverdist)
+library(dplyr)
 
 #### Load data
 # Define connection to KML files
 con <- here_data_raw("spatial", "streams")
 # Define stream names
-con |> 
+stream_abbr <- 
+  con |> 
   list.files(pattern = ".kml") |> 
   basename() |>
   substr(1, 3) |> 
-  unique()
+  unique() |>
+  sort()
+
+#### Global parameters
+manual <- FALSE
+
 
 #########################
 #########################
 #### Calculate distances to the lake
 
-#### Define stream & stream sections
-# Define layer of interest
-name     <- "GLU"
-# Load streams (linestring) and stream sections (points)
-stream   <- st_read(file.path(con, paste0(name, "-linestring.kml")))
-sections <- st_read(file.path(con, paste0(name, "-sections.kml")))
-# Guarantee correct section order
-sections <- 
-  sections |>
-  janitor::clean_names() |> 
-  dplyr::mutate(name = as.integer(as.character(name))) |> 
-  dplyr::arrange(name)
-# Convert to UTM coordinates (m)
-stream      <- st_transform(stream, 2056)
-sections    <- st_transform(sections, 2056)
-stream_sp   <- as(stream, "Spatial")
-sections_sp <- as(sections, "Spatial")
+distances <- 
+  pbapply::pblapply(stream_abbr, function(name) {
+    
+    #### Define stream & stream sections
+    # name     <- "SBU"
+    stream   <- 
+      file.path(con, paste0(name, "-linestrings.kml")) |> 
+      st_read() |> 
+      janitor::clean_names() |> 
+      # Fix stream order
+      # This is essential for correct functioning of {riverdist}
+      mutate(description = as.integer(as.character(description))) |> 
+      arrange(description)
+    # Stream sections are named as follows:
+    # * 0 (the lake to antenna/start of first tagging section)
+    # * 1 (antenna/first tagging section to start of section section etc.)
+    stream$description
+    stopifnot(!is.unsorted(stream$description))
+    # {riverdist} renames sections from 1 to the number of sections
+    # * 1 = the lake to the antenna
+    # * 2 = section 1 etc.
+    length(stream$description)
+    
+    #### Format stream for distance calculations with {riverdist}
+    stream <- st_transform(stream, 2056)
+    stream <- as(stream, "Spatial")
+    if (manual) plot(stream)
+    net <- line2network(stream, tolerance = 30)
+    if (manual) plot(net)
+    
+    #### Calculate distances
+    # Calculate the distances from river mouth to antenna
+    dist_lake_to_antenna <- 
+      riverdistance(startseg = 1, endseg = 2,
+                    startvert = 1, endvert = 1, 
+                    rivers = net, 
+                    map = TRUE)
+    # Calculate distances from the river mouth to the start of each section
+    png(here_fig("checks", "riverdist", paste0(name, ".png")), 
+        height = 10, width = 10, units = "in", res = 300)
+    pp <- par(mfrow = prettyGraphics::par_mf(max(net$lineID$rivID)), 
+              mar = c(1, 1, 1, 1))
+    ids <- net$lineID$rivID
+    sections <- ids[2:length(ids)]
+    dist_lake_to_section <- 
+      sapply(sections, function(end) {
+        riverdistance(startseg = 1, endseg = end,
+                      startvert = 1, endvert = 1, 
+                      rivers = net, 
+                      map = TRUE)
+      })
+    par(pp)
+    dev.off()
+    
+    #### Checks (passed) 
+    # * In figures, all river sections should be correctly placed & identified 
+    # * There should be no missing sections
+    # * Distance arrows should correctly highlight from the lake to the 
+    # * ... start of each section. 
+    
+    #### Define data frame with distances to the lake
+    # Note that the first distance is also the distance from lake to antenna
+    data.frame(stream = name, 
+               section = sections - 1,
+               dist_to_lake = dist_lake_to_section)
+  
+}) |> dplyr::bind_rows()
 
-#### Discretise streams into a series of points 
-# Interpolate points along the stream every (e.g.) 0.5 m
-s <- seq(0, as.numeric(st_length(stream)), by = 0.1)
-stream_int <- rgeos::gInterpolate(stream_sp, d = s)
-if (FALSE) {
-  raster::plot(stream_sp)
-  raster::plot(stream_int, add = TRUE, pch = ".", col = "red")
-}
-# Calculate distances between sequential points (0.5 m)
-dists <- c(0, sp::spDists(stream_int, segments = TRUE))
-
-#### Approximate section midpoints 
-mids_pos <- 
-  lapply(seq_len(nrow(sections) - 1), function(i) {
-    # Define river section pair
-    print(i)
-    sect_start  <- sections_sp[i, ]
-    sect_end    <- sections_sp[i + 1, ]
-    # Find the nearest locations on the river grid
-    nearest_start <- which.min(raster::pointDistance(sect_start, stream_int)) |> as.integer()
-    nearest_end   <- which.min(raster::pointDistance(sect_end, stream_int)) |> as.integer()
-    # Find the position of the mid point
-    pos <- floor(median(nearest_start:nearest_end))
-    if (FALSE) {
-      raster::plot(stream_sp)
-      points(sections_sp, col = "dimgrey", lwd = 0.75)
-      points(sect_start, pch = 21, bg = "green", col = "green")
-      points(sect_end, pch = 21, bg = "red", col = "red")
-      points(stream_int[nearest_start, ], pch = ".")
-      points(stream_int[nearest_end, ], pch = ".")
-      points(stream_int[pos, ], col = "purple", pch = "_", lwd = 3)
-      readline("Press [Enter] to continue...")
-    }
-    pos
-  }) 
-
-#### Visualise the positions of section midpoints 
-# Get coordinates 
-mids <- lapply(mids_pos, function(pos) {
-  stream_int[pos, ]
-})
-mids <- do.call(rbind, mids)
-# Plot 
-if (FALSE) {
-  raster::plot(stream_sp)
-  points(sections_sp[1, ]) # mouth of river
-  points(sections_sp, col = "blue")
-  points(mids, pch = "_", col = "red")
-}
-
-#### Get the cumulative distances from the mouth of the river to section midpoints
-dist_to_lake <- 
-  sapply(mids_pos, function(pos) {
-  sum(dists[seq_len(pos)])
-})
-# Check distances manually (e.g., using TEST file)
-if (FALSE) {
-  dists_on_page <- flapper::dist_btw_clicks(lonlat = FALSE)
-  dists_on_page$dist |> sum()
-}
-
-#### Define data frame with distances to the lake
-data.frame(stream = name, 
-           section = sections$name, 
-           dist = c(0, dist_to_lake)) |>
-  # Drop the first point (the lake) 
-  dplyr::filter(section != 0)
+#### Save calculated distances (m) 
+saveRDS(distances, here_data_raw("distances-to-lake.rds"))
 
 
 #### End of code.
