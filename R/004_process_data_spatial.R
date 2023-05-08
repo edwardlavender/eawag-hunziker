@@ -46,6 +46,48 @@ manual <- FALSE
 
 #########################
 #########################
+#### Identify coordinates of the mouth 
+
+#### Extract coordinates
+mouth_xy <- 
+  lapply(stream_abbr, function(name) {
+    # Define stream
+    stream <- 
+      con |>
+      file.path(paste0(name, "-linestrings.kml")) |> 
+      st_read(quiet = TRUE) |> 
+      janitor::clean_names() |>
+      filter(description %in% c("0", "1")) 
+    # Extract coordinates
+    xy <- 
+      stream |>
+      filter(description == "0") |>
+      st_coordinates() |>
+      as.data.frame() |>
+      slice(1L) |>
+      mutate(stream = name) |> 
+      dplyr::select(stream, lon = X, lat = Y)
+    # Visualise coordinates
+    if (manual) {
+      p <- 
+        ggplot(stream) + 
+        geom_sf(aes(colour = factor(description))) + 
+        ggsflabel::geom_sf_label(aes(label = description)) + 
+        geom_point(data = xy, aes(x = lon, y = lat), shape = 1, size = 4) +
+        labs(title = xy$stream)
+      print(p)
+    } 
+    if (manual) {
+      readline("Press [Enter] to continue...")
+    }
+    # Return coordinates
+    xy
+}) |> 
+  bind_rows()
+
+
+#########################
+#########################
 #### Calculate distances to the lake (~6 s)
 
 tic()
