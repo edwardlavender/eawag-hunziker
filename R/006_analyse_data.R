@@ -79,6 +79,26 @@ dist_tag <-
          pr_migrant
   ) |> 
   arrange(stream, section)
+# Do distances uniquely define each section? Essentially, yes. 
+nrow(dist_tag)
+length(unique(dist_tag$dist_to_ant_from_tag))
+length(unique(dist_tag$dist_to_lake_from_tag))
+# Do tagging dates uniquely define each stream or section? 
+# ... Streams were fished on 2-3 occasions
+# ... On any given date, 1-2 streams were fished
+length(unique(fish$stream))
+fish |> 
+  group_by(stream, date) |> 
+  slice(1L) |>
+  ungroup() |>
+  dplyr::select(stream, date) |> 
+  arrange(date) 
+# Check, for each stream, the number of unique tagging dates shared with other streams
+sapply(split(fish, fish$stream), function(d) {
+  other <- fish[!(fish$stream %in% d$stream), ]
+  any(d$date %in% other$date)
+  table(unique(d$date) %in% other$date)["TRUE"]
+})
 # Number of captures per section
 utils.add::basic_stats(dist_tag$n)
 # Distances of tagging sections to lake/antenna
