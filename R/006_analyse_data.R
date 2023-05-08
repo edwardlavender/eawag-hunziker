@@ -79,8 +79,10 @@ dist_tag <-
          pr_migrant
   ) |> 
   arrange(stream, section)
+# Number of captures per section
+utils.add::basic_stats(dist_tag$n)
+# Distances of tagging sections to lake/antenna
 utils.add::basic_stats(dist_tag$dist_to_lake_from_tag)
-# Distances of tagging sections to antenna
 utils.add::basic_stats(dist_tag$dist_to_ant_from_tag)
 # Tidy table
 dist_tag$dist_to_ant_from_tag  <- round(dist_tag$dist_to_ant_from_tag)
