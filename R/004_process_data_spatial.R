@@ -33,7 +33,7 @@ library(tictoc)
 alt <- terra::rast(here_data_raw("spatial", "altitude.tif"))
 # alt <- terra::project(alt, "epsg:4326") 
 # Define connection to stream KML files
-con <- here_data_raw("spatial", "streams", "linestrings")
+con <- here_data_raw("spatial", "streams", "geometry", "linestrings")
 # Define stream names
 stream_abbr <- 
   con |> 
@@ -130,10 +130,6 @@ altitudes <-
   }) |> bind_rows()
 
 
-#### Save calculated distances (m) 
-saveRDS(altitudes, here_data_raw("altitudes.rds"))
-
-
 #########################
 #########################
 #### Calculate distances to the lake (~6 s)
@@ -181,7 +177,7 @@ distances <-
     # ... It is important that the tolerance is less than the minimum section length
     tol <- ifelse(min(section_lengths) < 30, 10, 30)
     stopifnot(tol < min(section_lengths))
-    net_file <- here_data_raw("spatial", "streams", "networks", paste0(name, ".rds"))
+    net_file <- here_data_raw("spatial", "streams", "geometry", "networks", paste0(name, ".rds"))
     if (!file.exists(net_file)) {
       # Define network 
       net <- line2network(stream, tolerance = tol)
@@ -240,8 +236,20 @@ distances <-
 }) |> dplyr::bind_rows()
 toc()
 
-#### Save calculated distances (m) 
-saveRDS(distances, here_data_raw("distances-to-lake.rds"))
+
+#########################
+#########################
+#### Save outputs
+
+#### Collate stream characteristics (distances, altitudes)
+stations              <- altitudes
+stations$key          <- paste(stations$stream, stations$section)
+distances$key         <- paste(distances$stream, distances$section)
+stations$dist_to_lake <- distances$dist_to_lake[match(stations$key, distances$key)]
+stations$dist_to_lake[stations$section == 0] <- 0
+
+#### Save file
+saveRDS(stations, here_data_raw("spatial", "streams", "characteristics", "stations.rds"))
 
 
 #### End of code.
