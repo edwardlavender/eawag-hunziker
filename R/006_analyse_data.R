@@ -35,12 +35,23 @@ tag_sites_dist <- readRDS(here_data("distances-to-lake.rds"))
 
 #########################
 #########################
+#### Data processing
+
+#### Define altitude (a) of antenna and (b) other sections
+tag_sites_dist_1 <- tag_sites_dist[tag_sites_dist$section == 1, ]
+fish$altitude_1  <- tag_sites_dist_1$alt[match(fish$stream, tag_sites_dist_1$stream)] |> round()
+fish$altitude    <- tag_sites_dist$alt[match(fish$ss, tag_sites_dist$ss)] |> round()
+
+
+#########################
+#########################
 #### Summary tables
 
 #### Summary table of stream-level data 
 fish |> 
   group_by(stream) |> 
-  summarise(visits = length(unique(date)), 
+  summarise(altitude_1 = altitude_1[1], 
+            visits = length(unique(date)), 
             date = str_range(format(sort(date), "%d-%b")), 
             n = n(), 
             length = str_range(length), 
@@ -70,7 +81,7 @@ dist_tag <-
          pr_migrant = add_lagging_point_zero(round(n_migrant/n, 2), 2)) |>
   slice(1L) |>
   select(stream, section, 
-         dist_to_ant_from_tag, dist_to_lake_from_tag, 
+         altitude, dist_to_ant_from_tag, dist_to_lake_from_tag, 
          date,
          visits,
          n, 
@@ -111,7 +122,7 @@ dist_tag |> tidy_write(here_fig("tables", "stream_and_section_summary.txt"))
   
 #### Summary table of tagged fish 
 fish |> 
-  select(id, date, stream, sex, length, migration) |> 
+  select(id, date, stream, section, sex, length, migration) |> 
   arrange(date, stream, sex, length) |> 
   mutate(id = row_number()) |>
   tidy_write(here_fig("tables", "tag_data.txt"))
