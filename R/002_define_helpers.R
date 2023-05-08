@@ -17,10 +17,18 @@
 #' 
 str_range <- function(x) {
   if (inherits(x, "character")) {
-    paste0(c(x[1], x[length(x)]), collapse = "–")
+    x1 <- x[1]
+    x2 <- x[length(x)]
   } else {
-    paste0(c(min(x), max(x)), collapse = "–")
+    x1 <- min(x)
+    x2 <- max(x)
   }
+  if (x1 == x2) {
+    rng <- x1
+  } else {
+    rng <- paste0(c(x1, x2), collapse = "–")
+  }
+  rng
 }
 
 
