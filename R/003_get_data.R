@@ -28,8 +28,8 @@ dv::clear()
 #### Copy data
 
 #### Define file paths 
-con <- file.path("/Users", "lavended", "Documents", 
-                 "eawag", "research", "datasets")
+con <- file.path("/Users", "lavended", "Documents", "institutions",
+                 "eawag", "research", "datasets", "eawag-data")
 sink <- here::here("QGIS", "extdata")
 
 #### Obtain GADM (country boundary) datasets
@@ -42,6 +42,11 @@ file.copy(files, file.path(sink, basename(files)))
 files <- list.files(file.path(con, "data", "water-features"), 
                     full.names = TRUE, recursive = TRUE)
 file.copy(files, file.path(sink, basename(files)))
+
+#### Obtain altitude layer
+file.copy(file.path(con, "data-raw", "spatial", "swisstopo", "swissALTI3D", "lucerne-altitude.tif"), 
+          dv::here_data_raw("spatial", "altitude.tif"))
+
 
 
 #### End of code.
