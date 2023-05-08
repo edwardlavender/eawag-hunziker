@@ -23,11 +23,11 @@ library(dv)
 library(dplyr)
 
 #### Load data
-fish <- readxl::read_excel(here_data_raw("5. Real_residents_and_migs_below_SL243mm_without_N2&LRN.xlsx"))
-pit <- readxl::read_excel(here_data_raw("pit.xlsx"))
-tag_sites_abb <- readxl::read_excel(here_data_raw("stream-abbreviations.xlsx"), 
+fish <- readxl::read_excel(here_data_raw("fish", "5. Real_residents_and_migs_below_SL243mm_without_N2&LRN.xlsx"))
+pit  <- readxl::read_excel(here_data_raw("fish", "pit.xlsx"))
+tag_sites_abb <- readxl::read_excel(here_data_raw("spatial", "streams", "stream-abbreviations.xlsx"), 
                                     sheet = "data")
-tag_sites_dist <- readRDS(here_data_raw("distances-to-lake.rds"))
+tag_sites_dist <- readRDS(here_data_raw("spatial", "streams", "characteristics", "stations.rds"))
 # View(fish)
 
 
@@ -140,14 +140,14 @@ table(pit$hatchery)
 
 #########################
 #########################
-#### Define tagging site locations relative to the lake
+#### Define tagging site locations properties
 
 #### Clean tag sites data.frame
 tag_sites_abb <-
   tag_sites_abb |>
   janitor::clean_names()
 
-#### Extract coordinates and distances from the lake
+#### Link fish dataframe with tagging sites dataframe
 tag_sites_dist <- 
   tag_sites_dist |> 
   mutate(stream = tag_sites_abb$location[match(stream, tag_sites_abb$code)],
@@ -163,7 +163,10 @@ unique(fish$ss) |> sort()
 # fish$ss[!(fish$ss %in% tag_sites_dist$ss)] |> unique() |> sort()
 stopifnot(all(fish$ss %in% tag_sites_dist$ss))
 
-#### Calculate distances to lake/antenna
+#### Get altitudes & distances to lake/antenna
+# Altitudes
+fish$altitude <- tag_sites_dist$alt[match(fish$stream, tag_sites_dist$stream)]
+stopifnot(!any(is.na(fish$altitude)))
 # Distances of antenna to lake
 dist_ant <- 
   tag_sites_dist |> 
@@ -189,7 +192,7 @@ migrants <-
   fish |> 
   filter(migration == 1L) |> 
   select(length, sex, migration_date, migration_yday, yday, stream, section,
-         dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag) 
+         altitude, dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag) 
 
 
 #########################
