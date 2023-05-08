@@ -37,25 +37,7 @@ tag_sites_dist <- readRDS(here_data("distances-to-lake.rds"))
 #########################
 #### Summary tables
 
-#### Summary of stream characteristics
-# Distances of antenna from lake
-dist_ant <- 
-  tag_sites_dist |> 
-  filter(stream %in% fish$stream) |> 
-  filter(section == "1") |>
-  select(stream, dist_to_lake)
-utils.add::basic_stats(dist_ant$dist_to_lake)
-# Distances of tagging sections to the lake
-dist_tag <- 
-  fish |> 
-  group_by(stream, section) |>
-  slice(1L) |>
-  select(stream, section, dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag)
-utils.add::basic_stats(dist_tag$dist_to_lake_from_tag)
-# Distances of tagging sections to antenna
-utils.add::basic_stats(dist_tag$dist_to_ant_from_tag)
-
-#### Summary table of number of sampled fish per stream
+#### Summary table of stream-level data 
 fish |> 
   group_by(stream) |> 
   summarise(visits = length(unique(date)), 
@@ -65,7 +47,45 @@ fish |>
             n_migrant = length(which(migration == 1L))) |>
   mutate(pr_migrant = add_lagging_point_zero(round(n_migrant/n, 2), 2)) |>
   arrange(stream) |>
-  tidy_write(here_fig("tables", "tag_summary.txt"))
+  tidy_write(here_fig("tables", "stream_summary.txt"))
+
+#### Summary of section-level data 
+# Distances of antenna from lake
+dist_ant <- 
+  tag_sites_dist |> 
+  filter(stream %in% fish$stream) |> 
+  filter(section == "1") |>
+  select(stream, dist_to_lake)
+utils.add::basic_stats(dist_ant$dist_to_lake)
+# Distances of tagging sections to the lake and other information (as above)
+dist_tag <- 
+  fish |> 
+  group_by(stream, section) |>
+  mutate(section = as.numeric(as.character(section)), 
+         visits = length(unique(date)), 
+         date = str_range(format(sort(date), "%d-%b")), 
+         n = n(), 
+         length = str_range(length), 
+         n_migrant = length(which(migration == 1L)), 
+         pr_migrant = add_lagging_point_zero(round(n_migrant/n, 2), 2)) |>
+  slice(1L) |>
+  select(stream, section, 
+         dist_to_ant_from_tag, dist_to_lake_from_tag, 
+         date,
+         visits,
+         n, 
+         length, 
+         n_migrant, 
+         pr_migrant
+  ) |> 
+  arrange(stream, section)
+utils.add::basic_stats(dist_tag$dist_to_lake_from_tag)
+# Distances of tagging sections to antenna
+utils.add::basic_stats(dist_tag$dist_to_ant_from_tag)
+# Tidy table
+dist_tag$dist_to_ant_from_tag  <- round(dist_tag$dist_to_ant_from_tag)
+dist_tag$dist_to_lake_from_tag <- round(dist_tag$dist_to_lake_from_tag)
+dist_tag |> tidy_write(here_fig("tables", "stream_and_section_summary.txt"))
   
 #### Summary table of tagged fish 
 fish |> 
