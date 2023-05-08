@@ -29,7 +29,10 @@ library(ggplot2)
 library(tictoc)
 
 #### Load data
-# Define connection to KML files
+# Load altitude data
+alt <- terra::rast(here_data_raw("spatial", "altitude.tif"))
+# alt <- terra::project(alt, "epsg:4326") 
+# Define connection to stream KML files
 con <- here_data_raw("spatial", "streams", "linestrings")
 # Define stream names
 stream_abbr <- 
@@ -84,6 +87,51 @@ mouth_xy <-
     xy
 }) |> 
   bind_rows()
+
+
+#########################
+#########################
+#### Calculate altitude of each stream section
+
+altitudes <- 
+  lapply(stream_abbr, function(name) {
+    
+    #### Define stream
+    # name <- "SGN"
+    stream <- 
+      con |>
+      file.path(paste0(name, "-linestrings.kml")) |> 
+      st_read(quiet = TRUE) |> 
+      janitor::clean_names()  |>
+      # Fix stream order
+      mutate(description = as.integer(as.character(description))) |> 
+      arrange(description)
+    
+    #### Define coordinates of stream sections
+    xy <- 
+      lapply(split(stream, stream$description), function(d) {
+      xy <- st_coordinates(d)[1, c("X", "Y")] 
+      xy <- data.frame(x = xy[1], y = xy[2])
+      xy$stream  <- name
+      xy$section <- d$description
+      xy
+    }) |> bind_rows()
+    rownames(xy) <- NULL
+    # Convert to LV95 (NB: this does not work via sf)
+    sp::coordinates(xy) <- ~x + y
+    xy@proj4string      <- sp::CRS("+init=EPSG:4326")
+    xy <- sp::spTransform(xy, sp::CRS("+init=epsg:2056"))
+    xy <- sp::coordinates(xy)
+    
+    #### Extract altitudes
+    altm <- terra::extract(alt, xy)[, 1]
+    data.frame(stream = name, section = stream$description, x = xy[, 1], y = xy[, 2], alt = altm)
+    
+  }) |> bind_rows()
+
+
+#### Save calculated distances (m) 
+saveRDS(altitudes, here_data_raw("altitudes.rds"))
 
 
 #########################
