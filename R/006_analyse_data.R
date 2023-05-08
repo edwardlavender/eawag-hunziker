@@ -123,7 +123,7 @@ dist_tag |> tidy_write(here_fig("tables", "stream_and_section_summary.txt"))
 #### Summary table of tagged fish 
 fish |> 
   select(id, date, stream, section, sex, length, migration) |> 
-  arrange(date, stream, sex, length) |> 
+  arrange(date, stream, section, sex, length, migration) |> 
   mutate(id = row_number()) |>
   tidy_write(here_fig("tables", "tag_data.txt"))
   
