@@ -208,7 +208,13 @@ prop_sss <-
   as.data.frame()
 saveRDS(prop_sss, here_data("prop_sss.rds"))
 
-#### For migrant individuals, check sizes and the timing of migration
+#### For migrant individuals, check sex, sizes and the timing of migration
+# Sex distribution (calculate approximately comparable statistics to Aarestrup et al., 2018)
+aare <- fish[fish$migration == 1 & fish$length >= 9 & fish$length <= 21, ]
+tbl <- table(aare$sex)
+tbl/sum(tbl) * 100
+mod <- glm(length ~ sex, data = aare)
+pretty_predictions_1d(mod)
 # Size distribution
 ggplot(fish) + 
   geom_histogram(aes(length)) + 
