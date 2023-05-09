@@ -132,6 +132,16 @@ fish |>
 #########################
 #### Summary statistics
 
+#### Stream profiles
+tag_sites_dist |>
+  group_by(stream) |> 
+  arrange(section, .by_group = TRUE) |>
+  mutate(alt = alt - alt[1]) |>
+  ggplot() +
+  geom_point(aes(dist_to_lake, alt, colour = section)) + 
+  # scale_x_continuous(expand = c(0, 0)) + 
+  facet_wrap(~stream, scales = "free")
+
 #### Size distribution of fish 
 png(here_fig("fish-size-distribution.png"), 
     height = 4, width = 5, units = "in", res = 600)
