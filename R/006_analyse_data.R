@@ -178,9 +178,9 @@ cor(fish$yday, fish$length)
 size_class_cm <- 1.5
 prop_ss <- 
   fish |>
-  group_by(sex) |>
+  # group_by(sex) |>
   mutate(bin = cut(length, seq(min(length), max(length), by = size_class_cm))) |>
-  ungroup() |>
+  # ungroup() |>
   group_by(sex, bin) |>
   summarise(pr = length(which(migration == "1"))/n(), 
             n = n()) |>
