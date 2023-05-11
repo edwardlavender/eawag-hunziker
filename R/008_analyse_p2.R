@@ -195,10 +195,10 @@ if (FALSE) {
 response  <- "migration_yday"
 predictor <- "length"
 mframe <- model.frame(mod)
-mo <- seq(as.Date("2015-03-01"), as.Date("2015-06-01"), by = "months")
+mo <- seq(as.Date("2015-03-01"), as.Date("2015-07-01"), by = "months")
 jd <- lubridate::yday(mo)
 mo <- format(mo, "%b")
-ylim <- c(min(migrants$migration_yday) - 2, max(migrants$migration_yday))
+ylim <- c(min(migrants$migration_yday) - 2, lubridate::yday(as.Date("2015-07-20")))
 paa <- list(lim = list(x = lim_length, y = ylim), 
             axis = list(x = list(at = at_length), 
                         y = list(at = jd, labels = mo)))
@@ -274,6 +274,19 @@ if (FALSE) gratia::draw(mod) |> plotly::ggplotly()
 png(here_fig("migration-timing-by-stream.png"), 
     height = 5, width = 10, units = "in", res = 600)
 pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
+# Define maximum density value
+# ... This is used in the length-based density plots, shown for context, 
+# ... in the figures below. (It simplifies pretty positioning.)
+dens_ymax <- 
+  lapply(unique(streams), function(stream) {
+  fish_for_stream <- fish[fish$stream == stream, ]
+  len_m     <- fish_for_stream$length[fish_for_stream$sex == "M"]
+  dens_m    <- density(len_m, from = min(len_m), to = max(len_m))
+  len_f     <- fish_for_stream$length[fish_for_stream$sex == "F"]
+  dens_f    <- density(len_f, from = min(len_f), to = max(len_f))
+  c(dens_m$y, dens_f$y)
+}) |> unlist() |> max()
+# Make plots
 lapply(seq_len(length(unique(fish$stream))), function(i) {
   
   #### Define variables
@@ -290,7 +303,38 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   legend("bottomright", legend = paste0("n = ", nrow(mframe_for_stream)), bty = "n")
   # legend("bottomright", legend = bquote(italic(n) * " = " * .(nrow(mframe_for_stream))), bty = "n")
   add_obs_by_sex(mframe_for_stream, predictor, response)
-  mtext(side = 3, stream, font = 2)
+  mtext(side = 3, stream, font = 2, line = 0.25)
+  
+  #### Add size distribution across all fish in stream for context
+  pn <- par(new = TRUE)
+  fish_for_stream <- fish[fish$stream == stream, ]
+  len_m     <- fish_for_stream$length[fish_for_stream$sex == "M"]
+  dens_m    <- density(len_m, from = min(len_m), to = max(len_m))
+  len_f     <- fish_for_stream$length[fish_for_stream$sex == "F"]
+  dens_f    <- density(len_f, from = min(len_f), to = max(len_f))
+  pos       <- -0.035 # controls space between points 
+  adj       <- 1.75   # controls distance of density plot below points
+  dens_m$y  <- dens_m$y * -1 + pos * adj
+  dens_f$y  <- dens_f$y * -1 + pos * adj
+  dens_ylim <- c((dens_ymax * -1 + pos) * 5, 0)
+  plot(0, 0, 
+       xlim = paa$lim$x, ylim = dens_ylim, 
+       axes = FALSE, xlab = "", ylab = "")
+  points(len_f, rep(0, length(len_f)), 
+         col = scales::alpha(cols["F"], 0.5), cex = 0.35)
+  points(len_m, rep(pos, length(len_m)), 
+         col = scales::alpha(cols["M"], 0.5), cex = 0.35)
+  polygon(c(dens_m$x, rev(dens_m$x)), 
+          c(dens_m$y, rep(pos * adj, length(dens_m$y))), 
+          col = scales::alpha(cols["M"], 0.25), 
+          border = NA)
+  polygon(c(dens_f$x, rev(dens_f$x)), 
+          c(dens_f$y, rep(pos * adj, length(dens_f$y))), 
+          col = scales::alpha(cols["F"], 0.25), 
+          border = NA)
+
+  par(pn)
+  
 }) |> invisible()
 
 #### Add axes
