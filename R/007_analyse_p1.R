@@ -1,6 +1,6 @@
 #########################
 #########################
-#### analyse_p2.R
+#### analyse_p1.R
 
 #### Aims
 # 1) Analyse P1 (migration Pr ~ sex * size)
@@ -42,16 +42,38 @@ prop_sss <- readRDS(here_data("prop_sss.rds"))
 
 #########################
 #########################
+#### Processing
+
+#### Recode section labels from 1 to the number of sections sampled in each stream
+fish <- 
+  lapply(split(fish, fish$stream), function(d){
+  # d <- split(fish, fish$stream)[[1]]
+  lookup <- data.frame(old = sort(unique(d$section)))
+  lookup$new <- seq_len(nrow(lookup))
+  d$section <- lookup$new[match(d$section, lookup$old)]
+  d
+  }) |> 
+  bind_rows() |>
+  mutate(section = factor(section))
+str(fish)
+
+#### Check the number of sections per stream
+fish |> 
+  group_by(stream) |> 
+  summarise(n = length(unique(section)))
+
+
+#########################
+#########################
 #### Implement modelling 
 
 #### GLMM: model migration (0, 1) as a function of size and sex and other factors
 # Controls
 # * We will re-scale length to improve model identifiability 
-# * NAGQ controls the accuracy of the log likelihood evaluation
-# * The default option is 1 but we can increase this (at the expense of speed) 
-mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream), 
-             data = fish, family = binomial(link = "logit"), 
-             nAGQ = 25)
+mod_1 <- glmer(migration ~ 
+                 log(length) * sex + 
+                 yday + (1|stream) + (1|stream:section), 
+             data = fish, family = binomial(link = "logit"))
 
 #### GAMM: model migration (0, 1) as a function of size and sex and other factors
 # Motivation 
@@ -66,20 +88,63 @@ mod_1 <- glmer(migration ~ log(length) * sex + yday + (1|stream),
 # ... scale() produces poor fit on predictive plot 
 # * REML or ML recommended for fitting GAMs
 
-# mod_2: sex-specific smoothers with their own degree of wiggliness
+# GAM parameters 
+gamma <- 1
+
+# mod_2: sex-specific smoothers of the length effect with their own degree of wiggliness
 # ... This model is closest to our expectation that sexes may respond differently 
+# ... We also include a nested random effect of section within stream.
+# ... To be nested means an interaction term. 
+# ... i.e., We can’t predict the results for section 'A' in any other stream. 
+# ... hence, there is no overall 'section' effect.
 mod_2 <- gam(migration ~ 
                sex + 
                s(log(length), by = sex, bs = "tp", m = 2) + 
-               s(yday, bs = "cc") + 
-               s(stream, bs = "re"), 
+               s(yday, k = 5, bs = "cc") + 
+               s(stream, bs = "re") + 
+               s(stream, section, bs = c("re", "re")), 
              knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
+             gamma = gamma,
+             method = "REML")
+
+# mod_3: as above, but without the section variable (simpler)
+mod_3 <- gam(migration ~ 
+               sex + 
+               s(log(length), by = sex, bs = "tp", m = 2) + 
+               s(yday, k = 5, bs = "cc") + 
+               s(stream, bs = "re"),
+             knots = list(yday = c(0, 365)),
+             family = binomial, data = fish, 
+             gamma = gamma,
+             method = "REML")
+
+# mod_4: sex-specific and stream-specific smoothers 
+mod_4 <- gam(migration ~ 
+               sex + 
+               s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
+               s(yday, k = 5, bs = "cc") + 
+               s(stream, bs = "re") + 
+               s(stream, section, bs = c("re", "re")), 
+             knots = list(yday = c(0, 365)),
+             family = binomial, data = fish, 
+             gamma = gamma,
+             method = "REML")
+
+# mod_5: as above, but without the section variable
+mod_5 <- gam(migration ~ 
+               sex + 
+               s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
+               s(yday, k = 5, bs = "cc") + 
+               s(stream, bs = "re"),
+             knots = list(yday = c(0, 365)),
+             family = binomial, data = fish, 
+             gamma = gamma,
              method = "REML")
 
 #### Compare model AICs
-data.frame(mod = c(1, 2),
-           aic = c(AIC(mod_1), AIC(mod_2))) |> 
+data.frame(mod = c(1, 2, 3, 4, 5),
+           aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3), AIC(mod_4), AIC(mod_5))) |> 
   arrange(aic)
 # Choose model
 mod <- mod_2
@@ -94,8 +159,10 @@ if (is_glmer) {
 } else {
   fit <- plot(mod, pages = 1, scheme = 1, all.terms = TRUE, 
               residuals = TRUE, seWithMean = FALSE)
-  pretty_smooth_1d(fit, select = seq_len(length(fit) - 1), 
-                   add_resid = list(pch = "."), add_rug = list())
+  if (FALSE) {
+    pretty_smooth_1d(fit, select = seq_len(length(fit) - 1), 
+                     add_resid = list(pch = "."), add_rug = list())
+  }
 }
 sink(here_fig("tables", "migration-prob-mod.txt"))
 print(summary.gam(mod, digits = 1))
@@ -169,11 +236,12 @@ if (is_glmer) {
   
   #### Generate model predictions via predict.gam()
   # We can exclude the effect of stream via the exclude argument
+  # predict(mod, type = "terms") |> head()
   nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
                    yday = median(fish$yday),
                    length = c(fs, ms))
   p <- predict(mod, newdata = nd, 
-               exclude = "s(stream)", 
+               exclude = c("s(stream)", "s(stream,section)"),
                se.fit = TRUE, 
                newdata.guaranteed = TRUE, type = "link")
   pred <- nd
@@ -294,7 +362,8 @@ if (!is_glmer) {
 
     #### Create plot
     pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
-    pred <- gen_pred(mod, stream, predictor, mframe = fish_for_stream)
+    pred <- gen_pred(mod, stream, predictor, mframe = fish_for_stream, 
+                     exclude = "s(stream,section)", newdata.guaranteed = TRUE)
     add_error_envelopes_by_sex(pred, predictor)
     add_proportions(prop_sss[prop_sss$stream == stream, ], squash = 5)
     add_outcomes(fish_for_stream)
@@ -322,14 +391,22 @@ if (is_glmer) {
   
 } else {
   
+  wrap_compare_gam <- function(model, newdata) {
+    newdata$stream  <- fish$stream[1]
+    newdata$section <- fish$section[1]
+    compare_gam(model, newdata, 
+                exclude = c("s(stream)", "s(section,stream)"), 
+                newdata.guaranteed = TRUE)
+  }
+  
   # Predicted migration pr for small/large males/females
   rbind(
     # Small females/males 
-    compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday))),
-    compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday))),
+    wrap_compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday))),
+    wrap_compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday))),
     # Large females/males
-    compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday))),
-    compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday)))
+    wrap_compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday))),
+    wrap_compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday)))
   ) |> round(digits = 2)
     
   # How much more likely are small females likely to migrate than smaller males? 
