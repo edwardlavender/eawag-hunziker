@@ -122,16 +122,19 @@ add_obs_by_sex <- function(mframe, predictor, response, ...) {
 #### Statistics helpers
 
 #' @title Compare gam
-#' @description This function compares the predictions of a GAM for a hypothetical individual. The `s(stream)` effect is excluded. 
+#' @description This function compares the predictions of a GAM for a hypothetical individual. 
 #' @details This function is designed for the model(s) in analyse_h1.R
 #' 
-compare_gam <- function(model, newdata) {
+compare_gam <- function(model, newdata, 
+                        exclude = NULL,
+                        newdata.guaranteed = FALSE) {
   newdata$sex <- factor(newdata$sex, levels = c("F", "M"))
   p <- 
     predict(model, 
             newdata = newdata,
-            exclude = "s(stream)", 
-            newdata.guaranteed = TRUE, se.fit = TRUE) |> 
+            exclude = c("s(stream)", "s(stream,section)"),
+            newdata.guaranteed = newdata.guaranteed, 
+            se.fit = TRUE) |> 
     list_CIs(inv_link = mod$family$linkinv, plot_suggestions = FALSE)
   do.call(cbind, p)
 }
