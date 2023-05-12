@@ -48,6 +48,7 @@ fish$altitude    <- tag_sites_dist$alt[match(fish$ss, tag_sites_dist$ss)] |> rou
 #### Summary tables
 
 #### Summary table of stream-level data 
+# Define summary data 
 fish |> 
   group_by(stream) |> 
   summarise(altitude_1 = altitude_1[1], 
@@ -59,6 +60,10 @@ fish |>
   mutate(pr_migrant = add_lagging_point_zero(round(n_migrant/n, 2), 2)) |>
   arrange(stream) |>
   tidy_write(here_fig("tables", "stream_summary.txt"))
+# Check the number of sections per stream with observations 
+fish |> 
+  group_by(stream) |> 
+  summarise(n_sections = length(unique(section)))
 
 #### Summary of section-level data 
 # Distances of antenna from lake
