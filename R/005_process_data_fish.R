@@ -137,6 +137,24 @@ fish$section <- factor(pit$section[ind])
 # * All wild fish
 table(pit$hatchery)
 
+#### Recode section labels from 1 to the number of sections sampled in each stream
+# (For modelling purposes)
+fish <- 
+  lapply(split(fish, fish$stream), function(d){
+    # d <- split(fish, fish$stream)[[1]]
+    lookup <- data.frame(old = sort(unique(d$section)))
+    lookup$new <- seq_len(nrow(lookup))
+    d$rc_section <- lookup$new[match(d$section, lookup$old)]
+    d
+  }) |> 
+  bind_rows() |>
+  mutate(rc_section = factor(rc_section))
+str(fish)
+# Check the number of sections per stream
+fish |> 
+  group_by(stream) |> 
+  summarise(n = length(unique(rc_section)))
+
 
 #########################
 #########################
