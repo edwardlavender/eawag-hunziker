@@ -209,7 +209,7 @@ stopifnot(!any(is.na(fish$dist_to_ant_from_tag)))
 migrants <- 
   fish |> 
   filter(migration == 1L) |> 
-  select(length, sex, migration_date, migration_yday, yday, stream, section,
+  select(length, sex, migration_date, migration_yday, yday, stream, section, rc_section,
          altitude, dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag) 
 
 
