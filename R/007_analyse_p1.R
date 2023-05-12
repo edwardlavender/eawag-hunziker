@@ -92,7 +92,10 @@ if (is_glmer) {
   equatiomatic::extract_eq(mod)
   MuMIn::r.squaredGLMM(mod)
 } else {
-  plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
+  fit <- plot(mod, pages = 1, scheme = 1, all.terms = TRUE, 
+              residuals = TRUE, seWithMean = FALSE)
+  pretty_smooth_1d(fit, select = seq_len(length(fit) - 1), 
+                   add_resid = list(pch = "."), add_rug = list())
 }
 sink(here_fig("tables", "migration-prob-mod.txt"))
 print(summary.gam(mod, digits = 1))
