@@ -42,29 +42,6 @@ prop_sss <- readRDS(here_data("prop_sss.rds"))
 
 #########################
 #########################
-#### Processing
-
-#### Recode section labels from 1 to the number of sections sampled in each stream
-fish <- 
-  lapply(split(fish, fish$stream), function(d){
-  # d <- split(fish, fish$stream)[[1]]
-  lookup <- data.frame(old = sort(unique(d$section)))
-  lookup$new <- seq_len(nrow(lookup))
-  d$section <- lookup$new[match(d$section, lookup$old)]
-  d
-  }) |> 
-  bind_rows() |>
-  mutate(section = factor(section))
-str(fish)
-
-#### Check the number of sections per stream
-fish |> 
-  group_by(stream) |> 
-  summarise(n = length(unique(section)))
-
-
-#########################
-#########################
 #### Implement modelling 
 
 #### GLMM: model migration (0, 1) as a function of size and sex and other factors
@@ -72,7 +49,7 @@ fish |>
 # * We will re-scale length to improve model identifiability 
 mod_1 <- glmer(migration ~ 
                  log(length) * sex + 
-                 yday + (1|stream) + (1|stream:section), 
+                 yday + (1|stream) + (1|stream:rc_section), 
              data = fish, family = binomial(link = "logit"))
 
 #### GAMM: model migration (0, 1) as a function of size and sex and other factors
@@ -102,7 +79,7 @@ mod_2 <- gam(migration ~
                s(log(length), by = sex, bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
                s(stream, bs = "re") + 
-               s(stream, section, bs = c("re", "re")), 
+               s(stream, rc_section, bs = c("re", "re")), 
              knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
              gamma = gamma,
@@ -125,7 +102,7 @@ mod_4 <- gam(migration ~
                s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
                s(stream, bs = "re") + 
-               s(stream, section, bs = c("re", "re")), 
+               s(stream, rc_section, bs = c("re", "re")), 
              knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
              gamma = gamma,
@@ -241,7 +218,7 @@ if (is_glmer) {
                    yday = median(fish$yday),
                    length = c(fs, ms))
   p <- predict(mod, newdata = nd, 
-               exclude = c("s(stream)", "s(stream,section)"),
+               exclude = c("s(stream)", "s(stream,rc_section)"),
                se.fit = TRUE, 
                newdata.guaranteed = TRUE, type = "link")
   pred <- nd
@@ -363,7 +340,7 @@ if (!is_glmer) {
     #### Create plot
     pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
     pred <- gen_pred(mod, stream, predictor, mframe = fish_for_stream, 
-                     exclude = "s(stream,section)", newdata.guaranteed = TRUE)
+                     exclude = "s(stream,rc_section)", newdata.guaranteed = TRUE)
     add_error_envelopes_by_sex(pred, predictor)
     add_proportions(prop_sss[prop_sss$stream == stream, ], squash = 5)
     add_outcomes(fish_for_stream)
@@ -392,10 +369,10 @@ if (is_glmer) {
 } else {
   
   wrap_compare_gam <- function(model, newdata) {
-    newdata$stream  <- fish$stream[1]
-    newdata$section <- fish$section[1]
+    newdata$stream     <- fish$stream[1]
+    newdata$rc_section <- fish$rc_section[1]
     compare_gam(model, newdata, 
-                exclude = c("s(stream)", "s(section,stream)"), 
+                exclude = c("s(stream)", "s(rc_section,stream)"), 
                 newdata.guaranteed = TRUE)
   }
   
