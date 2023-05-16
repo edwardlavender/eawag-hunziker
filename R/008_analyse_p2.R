@@ -21,6 +21,7 @@ dv::clear()
 #### Essential packages
 library(dv)
 library(dplyr)
+library(magrittr)
 library(mgcv)
 library(DHARMa)
 library(ggeffects)
@@ -108,6 +109,7 @@ mod_1 <- gam(migration_yday ~
              gamma = gamma,
              method = "REML")
 plot(mod_1, pages = 1, scheme = 1, all.terms = TRUE)
+cowplot::plot_grid(plotlist = plot(ggeffects::ggpredict(mod_1), add.data = TRUE))
 
 # mod_2: mod_1 but with log(length) as predictor
 mod_2 <- gam(migration_yday ~
@@ -121,6 +123,7 @@ mod_2 <- gam(migration_yday ~
              gamma = gamma,
              method = "REML")
 plot(mod_2, pages = 1, scheme = 1, all.terms = TRUE)
+cowplot::plot_grid(plotlist = plot(ggeffects::ggpredict(mod_2), add.data = TRUE))
 c(AIC(mod_1), AIC(mod_2))
 
 # mod_3: individual sex AND stream specific smoothers (for effect of length)
@@ -143,6 +146,7 @@ mod_3 <- gam(migration_yday ~
              gamma = gamma,
              method = "REML")
 plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
+AIC(mod_3) - AIC(mod_2)
 
 # mod_4: mod_3 but with stream-specific smoothers only 
 # According to AIC, this similar model is preferable
@@ -163,13 +167,17 @@ mod_4 <- gam(migration_yday ~
              gamma = gamma,
              method = "REML")
 plot(mod_4, pages = 1, scheme = 1, all.terms = TRUE)
+AIC(mod_4) - AIC(mod_3)
 
 #### Compare models (with the same likelihood)
 # mod_4 is preferred according to AIC
 data.frame(mod = c(1, 2, 3, 4),
            aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3), AIC(mod_4))) |> 
   arrange(aic) |>
-  mutate(delta_aic = aic - aic[1])
+  mutate(delta_aic = aic - aic[1]) %T>%
+  print() |> 
+  tidy_numbers(digits = 2) |> 
+  tidy_write(here_fig("tables", "migration-timing-aics.txt"))
 mod <- mod_4
 
 ##### Check model summary 
