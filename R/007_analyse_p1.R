@@ -85,19 +85,8 @@ mod_2 <- gam(migration ~
              gamma = gamma,
              method = "REML")
 
-# mod_3: as above, but without the section variable (simpler)
+# mod_3: sex-specific and stream-specific smoothers 
 mod_3 <- gam(migration ~ 
-               sex + 
-               s(log(length), by = sex, bs = "tp", m = 2) + 
-               s(yday, k = 5, bs = "cc") + 
-               s(stream, bs = "re"),
-             knots = list(yday = c(0, 365)),
-             family = binomial, data = fish, 
-             gamma = gamma,
-             method = "REML")
-
-# mod_4: sex-specific and stream-specific smoothers 
-mod_4 <- gam(migration ~ 
                sex + 
                s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
@@ -108,21 +97,11 @@ mod_4 <- gam(migration ~
              gamma = gamma,
              method = "REML")
 
-# mod_5: as above, but without the section variable
-mod_5 <- gam(migration ~ 
-               sex + 
-               s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
-               s(yday, k = 5, bs = "cc") + 
-               s(stream, bs = "re"),
-             knots = list(yday = c(0, 365)),
-             family = binomial, data = fish, 
-             gamma = gamma,
-             method = "REML")
-
 #### Compare model AICs
-data.frame(mod = c(1, 2, 3, 4, 5),
-           aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3), AIC(mod_4), AIC(mod_5))) |> 
-  arrange(aic)
+data.frame(mod = c(1, 2, 3),
+           aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3))) |>
+  arrange(aic) |> 
+  mutate(delta = aic - aic[1])
 # Choose model
 mod <- mod_2
 is_glmer <- inherits(mod, "merMod")
@@ -310,6 +289,7 @@ legend(25, 0.6,
        bty = "n")
 
 dev.off()
+
 
 #########################
 #### Visualise observations/predictions by stream
