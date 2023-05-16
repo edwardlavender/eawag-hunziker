@@ -21,6 +21,7 @@ dv::clear()
 
 #### Essential packages
 library(dv)
+library(magrittr)
 library(dplyr)
 library(mgcv)
 library(lme4)
@@ -101,7 +102,10 @@ mod_3 <- gam(migration ~
 data.frame(mod = c(1, 2, 3),
            aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3))) |>
   arrange(aic) |> 
-  mutate(delta = aic - aic[1])
+  mutate(delta = aic - aic[1]) %T>%
+  print() |> 
+  tidy_numbers(digits = 2) |> 
+  tidy_write(here_fig("tables", "migration-prob-aics.txt"))
 # Choose model
 mod <- mod_2
 is_glmer <- inherits(mod, "merMod")
