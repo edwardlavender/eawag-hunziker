@@ -118,19 +118,7 @@ mod_2 <- gam(migration_yday ~
 plot(mod_2, pages = 1, scheme = 1, all.terms = TRUE)
 c(AIC(mod_1), AIC(mod_2))
 
-# mod_3: mod_1 but without the section effect
-mod_3 <- gam(migration_yday ~ 
-               sex +
-               s(log(length), by = sex, bs = "tp", m = 2) + 
-               s(yday, bs = "cc", k = 5) + 
-               s(stream, bs = "re"),
-             knots = list(yday = c(0, 365)),
-             family = gaussian(link = "identity"), data = migrants, 
-             method = "REML")
-plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
-c(AIC(mod_1), AIC(mod_2), AIC(mod_3))
-
-# mod_4: individual sex AND stream specific smoothers (for effect of length)
+# mod_3: individual sex AND stream specific smoothers (for effect of length)
 # The initial models (e.g., mod_1) describe the data reasonably well 
 # ... on average across streams but the predictions for individual streams
 # ... are poor. There is evidence that the shape of the relationship between migration
@@ -138,7 +126,7 @@ c(AIC(mod_1), AIC(mod_2), AIC(mod_3))
 # ... the steepness of the shape varies. This suggests a model with effects that
 # ... vary by stream would be appropriate. 
 # Thus we amend the previous model to permit sex/stream specific smoothers
-mod_4 <- gam(migration_yday ~ 
+mod_3 <- gam(migration_yday ~ 
                sex +
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = c("re", "re")) + 
@@ -148,16 +136,16 @@ mod_4 <- gam(migration_yday ~
              knots = list(yday = c(0, 365)),
              family = gaussian(link = "identity"), data = migrants, 
              method = "REML")
-plot(mod_4, pages = 1, scheme = 1, all.terms = TRUE)
+plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
 
-# mod_5: mod_4 but with stream-specific smoothers only 
+# mod_4: mod_3 but with stream-specific smoothers only 
 # According to AIC, this similar model is preferable
 # I.e., the effect of size is similar between the sexes
 # Putting P1 and P2 together, we can say that 
 # * Females, and especially small females, are more likely to migrate than similarly sized males
 # * Of the individuals that do migrate, larger individuals migrate sooner than smaller ones
 # * Of the migrants, females do not appear to migrate sooner than males of equivalent size
-mod_5 <- gam(migration_yday ~ 
+mod_4 <- gam(migration_yday ~ 
                sex +
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = c("re", "re")) + 
@@ -167,27 +155,15 @@ mod_5 <- gam(migration_yday ~
              knots = list(yday = c(0, 365)),
              family = gaussian(link = "identity"), data = migrants, 
              method = "REML")
-plot(mod_5, pages = 1, scheme = 1, all.terms = TRUE)
-
-# mod_6: mod_5 but with Gamma likelihood
-mod_6 <- gam(migration_yday ~ 
-               sex +
-               s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")) + 
-               s(log(length), by = stream, bs = "tp", m = 2) + 
-               s(yday, bs = "cc", k = 5),
-             knots = list(yday = c(0, 365)),
-             family = Gamma(link = "log"), data = migrants, 
-             method = "REML")
+plot(mod_4, pages = 1, scheme = 1, all.terms = TRUE)
 
 #### Compare models (with the same likelihood)
-# mod_5 is preferred according to AIC
-data.frame(mod = c(1, 2, 3, 4, 5),
-           aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3),
-                   AIC(mod_4), AIC(mod_5))) |> 
+# mod_4 is preferred according to AIC
+data.frame(mod = c(1, 2, 3, 4),
+           aic = c(AIC(mod_1), AIC(mod_2), AIC(mod_3), AIC(mod_4))) |> 
   arrange(aic) |>
   mutate(delta_aic = aic - aic[1])
-mod <- mod_5
+mod <- mod_4
 
 ##### Check model summary 
 summary(mod)
@@ -403,8 +379,7 @@ comp
 #### Model diagnostics 
 
 #### GAM checks
-# * mod_5: shows small evidence of overdispersion
-# * mod_6: broadly similar
+# * mod_4: shows very minor skew
 pp <- par(mfrow = c(2, 2))
 gam.check(mod, rep = 1e3)
 par(pp)
@@ -412,7 +387,6 @@ k.check(mod)
 
 #### Simulate DHARMa residuals
 # mod_4: ok. 
-# mod_5: ok.
 mframe <- model.frame(mod)
 res    <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
 
