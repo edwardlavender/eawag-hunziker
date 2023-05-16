@@ -92,6 +92,9 @@ ggplot(migrants) +
 # ... I.e., small females will risk migration sooner than males
 # ... of the equivalent size 
 
+# GAM parameters 
+gamma <- 1
+
 # mod_1: Initial model: sex-specific smoothers of length (with varying wiggliness)
 # ... This model is closest to our hypothesis in that it allows M/F to vary in timing by size
 mod_1 <- gam(migration_yday ~ 
@@ -99,9 +102,10 @@ mod_1 <- gam(migration_yday ~
                s(length, by = sex, bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5) + 
                s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")),
+               s(stream, section, bs = "re"),
              knots = list(yday = c(0, 365)),
              family = gaussian(link = "identity"), data = migrants, 
+             gamma = gamma,
              method = "REML")
 plot(mod_1, pages = 1, scheme = 1, all.terms = TRUE)
 
@@ -111,9 +115,10 @@ mod_2 <- gam(migration_yday ~
                s(log(length), by = sex, bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5) + 
                s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")),
+               s(stream, rc_section, bs = "re"),
              knots = list(yday = c(0, 365)),
              family = gaussian(link = "identity"), data = migrants, 
+             gamma = gamma,
              method = "REML")
 plot(mod_2, pages = 1, scheme = 1, all.terms = TRUE)
 c(AIC(mod_1), AIC(mod_2))
@@ -129,12 +134,13 @@ c(AIC(mod_1), AIC(mod_2))
 mod_3 <- gam(migration_yday ~ 
                sex +
                s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")) + 
+               s(stream, rc_section, bs = "re") + 
                # Group-level smoothers with different wiggliness:
                s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5),
              knots = list(yday = c(0, 365)),
-             family = gaussian(link = "identity"), data = migrants, 
+             family = gaussian(link = "identity"), data = migrants,
+             gamma = gamma,
              method = "REML")
 plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
 
@@ -148,12 +154,13 @@ plot(mod_3, pages = 1, scheme = 1, all.terms = TRUE)
 mod_4 <- gam(migration_yday ~ 
                sex +
                s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")) + 
+               s(stream, rc_section, bs = "re") + 
                # Group level smoothers with different wiggliness:
                s(log(length), by = stream, bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5),
              knots = list(yday = c(0, 365)),
-             family = gaussian(link = "identity"), data = migrants, 
+             family = gaussian(link = "identity"), data = migrants,
+             gamma = gamma,
              method = "REML")
 plot(mod_4, pages = 1, scheme = 1, all.terms = TRUE)
 
