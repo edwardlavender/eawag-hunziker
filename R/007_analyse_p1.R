@@ -79,7 +79,7 @@ mod_2 <- gam(migration ~
                s(log(length), by = sex, bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
                s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")), 
+               s(stream, rc_section, bs = "re"), 
              knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
              gamma = gamma,
@@ -91,7 +91,7 @@ mod_3 <- gam(migration ~
                s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
                s(stream, bs = "re") + 
-               s(stream, rc_section, bs = c("re", "re")), 
+               s(stream, rc_section, bs = "re"), 
              knots = list(yday = c(0, 365)),
              family = binomial, data = fish, 
              gamma = gamma,
