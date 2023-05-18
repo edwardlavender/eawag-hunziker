@@ -18,7 +18,7 @@ This repository contains methods, written in
 al. (in prep). Sex- and length-dependent variation in migratory
 propensity in brown trout.
 
-In this project, we studied the migratory propensity of potadromous
+In this project, we studied the migratory propensity of potamodromous
 brown trout (*Salmo trutta*) in streams around Lake Lucerne (central
 Switzerland). In this system, the trout exhibit partial
 lacustrine–adfluvial migration, with a portion of individuals remaining
