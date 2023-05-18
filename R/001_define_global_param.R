@@ -36,8 +36,8 @@ at_size <- list(length = at_length,
 
 #### Define 'small' and 'large' sizes for comparisons
 # The units here need to be the same is the data used to fit models
-small <- 10 # cm or kg
-large <- 15 # cm or kg
+small <- 10 # cm or 10 g
+large <- 15 # cm or 10 g
 
 
 #### End of code.
