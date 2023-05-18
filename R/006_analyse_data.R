@@ -147,6 +147,14 @@ tag_sites_dist |>
   # scale_x_continuous(expand = c(0, 0)) + 
   facet_wrap(~stream, scales = "free")
 
+#### Relationship between size metrics
+plot(fish$length, fish$mass)
+sl <- seq(min(fish$length), max(fish$length), length.out = 100)
+lm(mass ~ poly(length, 3), data = fish)
+ggplot(fish, aes(x = length, y = mass)) + 
+  geom_point() + 
+  geom_smooth(method = lm, formula = y ~ poly(x, 3), data = fish)
+
 #### Size distribution of fish 
 png(here_fig("fish-length-distribution.png"), 
     height = 4, width = 5, units = "in", res = 600)
