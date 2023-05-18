@@ -303,7 +303,12 @@ lapply(c("length", "mass"), function(size_var) {
   points(fish$length[pos_m], rep(0, length(pos_m)), 
          col = scales::alpha(cols["M"], 0.5), cex = 0.5)
   add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-    mtext(side = 1, "Standard length (cm)", cex = cex, line = line, ...)
+    if (size_var == "length") {
+      xlab <- "Standard length (cm)"
+    } else if (size_var == "mass") {
+      xlab <- "Mass (10 g)"
+    }
+    mtext(side = 1, xlab, cex = cex, line = line, ...)
     mtext(side = 2, "Proportion", cex = cex, line = line, ...)
   }
   add_axes_labels()
