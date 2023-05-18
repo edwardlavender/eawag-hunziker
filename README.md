@@ -14,8 +14,9 @@ developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.re
 This repository contains methods, written in
 [R](https://www.r-project.org/) and organised as an
 [RStudio](https://www.rstudio.com/)
-[Project](https://r4ds.had.co.nz/workflow-projects.html) for Hunziker et
-al. (in prep).
+[Project](https://r4ds.had.co.nz/workflow-projects.html) for Lavender et
+al. (in prep). Sex- and length-dependent variation in migratory
+propensity in brown trout.
 
 In this project, we studied the migratory propensity of potadromous
 brown trout (*Salmo trutta*) in streams around Lake Lucerne (central
@@ -148,7 +149,7 @@ workflow.
 
 # Citation
 
-Hunziker et al. (in prep). Sex- and size-dependent variation in
-migratory propensity in brown trout.
+Lavender, E., Hunziker, Y. et al. (in prep). Sex- and length-dependent
+variation in migratory propensity in brown trout.
 
 ------------------------------------------------------------------------
