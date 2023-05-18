@@ -72,8 +72,8 @@ gen_pred <- function(mod, stream = NULL, predictor, mframe = NULL, n = 100,
   # Define a sequence of values of the predictor, separately for M/F, for prediction
   ms <- mframe[mframe$sex == "M", predictor]
   fs <- mframe[mframe$sex == "F", predictor]
-  ms <- seq(min(ms), max(ms), length = n)
-  fs <- seq(min(fs), max(fs), length = n)
+  ms <- seq(min(ms, na.rm = TRUE), max(ms, na.rm = TRUE), length = n)
+  fs <- seq(min(fs, na.rm = TRUE), max(fs, na.rm = TRUE), length = n)
   # Generate predictions for stream
   nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
                    predictor = c(fs, ms), 
