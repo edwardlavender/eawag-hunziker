@@ -45,11 +45,19 @@ prop_sss <- readRDS(here_data("prop_sss.rds"))
 #########################
 #### Implement modelling 
 
+#### Define 'size' predictor variable
+size      <- "length"
+fish$size <- fish[, size]
+prop_ss   <- prop_ss[[size]]
+prop_sss  <- prop_sss[[size]]
+here_fig <- function(...) dv::here_fig("relationships", "fig", glue::glue("by-{size}"), ...)
+here_tbl <- function(...) dv::here_fig("relationships", "tbl", glue::glue("by-{size}"), ...)
+
 #### GLMM: model migration (0, 1) as a function of size and sex and other factors
 # Controls
 # * We will re-scale length to improve model identifiability 
 mod_1 <- glmer(migration ~ 
-                 log(length) * sex + 
+                 log(size) * sex + 
                  yday + (1|stream) + (1|stream:rc_section), 
              data = fish, family = binomial(link = "logit"))
 
@@ -77,7 +85,7 @@ gamma <- 1
 # ... hence, there is no overall 'section' effect.
 mod_2 <- gam(migration ~ 
                sex + 
-               s(log(length), by = sex, bs = "tp", m = 2) + 
+               s(log(size), by = sex, bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = "re"), 
@@ -89,7 +97,7 @@ mod_2 <- gam(migration ~
 # mod_3: sex-specific and stream-specific smoothers 
 mod_3 <- gam(migration ~ 
                sex + 
-               s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
+               s(log(size), by = interaction(sex, stream), bs = "tp", m = 2) + 
                s(yday, k = 5, bs = "cc") + 
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = "re"), 
@@ -105,7 +113,7 @@ data.frame(mod = c(1, 2, 3),
   mutate(delta = aic - aic[1]) %T>%
   print() |> 
   tidy_numbers(digits = 2) |> 
-  tidy_write(here_fig("tables", "migration-prob-aics.txt"))
+  tidy_write(here_tbl("migration-prob-aics.txt"))
 # Choose model
 mod <- mod_2
 is_glmer <- inherits(mod, "merMod")
@@ -124,7 +132,7 @@ if (is_glmer) {
                      add_resid = list(pch = "."), add_rug = list())
   }
 }
-sink(here_fig("tables", "migration-prob-mod.txt"))
+sink(here_tbl("migration-prob-mod.txt"))
 print(summary.gam(mod, digits = 1))
 sink()
 
@@ -140,15 +148,15 @@ sink()
 png(here_fig("migration-prob.png"), 
     height = 5, width = 7, units = "in", res = 600)
 pp <- par(oma = c(0, 0, 0, 4))
-predictor <- "length"
+predictor <- "size"
 response  <- "pr"
 
 #### Create blank plot
 # We define the vertical axis to range slightly beyond c(0, 1)
 # This enables us to add rugs at the top for males/females (see add_outcomes())
-paa <- list(lim = list(x = lim_length, 
+paa <- list(lim = list(x = lim_size[[size]], 
                        y = c(-0.1, 1.1)),
-            axis = list(x = list(at = at_length), 
+            axis = list(x = list(at = at_size[[size]]), 
                         y = list(at = seq(0, 1, 0.2))), 
             control_axis = list(las = TRUE, cex.axis = 1.25)
             )
@@ -157,10 +165,10 @@ pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
 #### Add model predictions with SEs
 # Define sequence of body sizes for prediction
 n <- 100
-ms <- fish$length[fish$sex == "M"]
-fs <- fish$length[fish$sex == "F"]
-ms <- seq(min(ms), max(ms), length = n)
-fs <- seq(min(fs), max(fs), length = n)
+ms <- fish$size[fish$sex == "M"]
+fs <- fish$size[fish$sex == "F"]
+ms <- seq(min(ms, na.rm = TRUE), max(ms, na.rm = TRUE), length = n)
+fs <- seq(min(fs, na.rm = TRUE), max(fs, na.rm = TRUE), length = n)
 # Add CIs
 if (is_glmer) {
   
@@ -173,9 +181,9 @@ if (is_glmer) {
   # ... CIs are calculated as described here:
   # ... https://strengejacke.github.io/ggeffects/articles/ggeffects.html
   # Generate predictions across the range of body sizes for males/females
-  pr <- ggpredict(mod, terms = c("length [all]", "sex"), type = "fixed")
-  pm <- ggpredict(mod, terms = "length [ms]", condition = c(sex = "M"))
-  pf <- ggpredict(mod, terms = "length [fs]", condition = c(sex = "F"))
+  pr <- ggpredict(mod, terms = c("size [all]", "sex"), type = "fixed")
+  pm <- ggpredict(mod, terms = "size [ms]", condition = c(sex = "M"))
+  pf <- ggpredict(mod, terms = "size [fs]", condition = c(sex = "F"))
   if (FALSE) {
     plot(pr, add.data = TRUE)
     plot(pm, add.data = TRUE)
@@ -199,7 +207,7 @@ if (is_glmer) {
   # predict(mod, type = "terms") |> head()
   nd <- data.frame(sex = factor(c(rep("F", n), rep("M", n))),
                    yday = median(fish$yday),
-                   length = c(fs, ms))
+                   size = c(fs, ms))
   p <- predict(mod, newdata = nd, 
                exclude = c("s(stream)", "s(stream,rc_section)"),
                se.fit = TRUE, 
@@ -214,7 +222,7 @@ if (is_glmer) {
   
   #### Add error envelopes for males/females
   lapply(split(pred, pred$sex), function(d) {
-    add_error_envelope(d$length, 
+    add_error_envelope(d$size, 
                        ci = list(fit = d$fit, lowerCI = d$lowerCI, upperCI = d$upperCI), 
                        add_fit = list(col = scales::alpha(cols[d$sex[1]], alpha_fit)), 
                        add_ci = list(col = scales::alpha(cols[d$sex[1]], alpha_ci), border = FALSE))
@@ -229,17 +237,17 @@ add_proportions <- function(data, add_lines = FALSE, squash = squash_param) {
     # Add lines for the observed proportion of migrants with body size 
     lapply(split(data, data$sex), function(d) {
       # d <- split(data, data$sex)[["M"]]
-      lines(d$length, d$pr, col = d$col[1], lty = 3)
+      lines(d$size, d$pr, col = d$col[1], lty = 3)
     })
   }
   # Add observed proportions for each size class
   data$cex <- data$n/squash
-  points(data$length, data$pr,  
+  points(data$size, data$pr,  
          pch = 21, bg = data$col, col = data$col, 
          cex = data$cex)
   # Highlight small points in red
   tiny <- data[data$cex < 0.5, ]
-  points(tiny$length, tiny$pr, col = "red", lwd = 0.5)
+  points(tiny$size, tiny$pr, col = "red", lwd = 0.5)
 }
 add_proportions(prop_ss)
 
@@ -254,16 +262,21 @@ add_outcomes <- function(data) {
   data$migration_p[data$sex == "M" & data$migration == "1"] <- 1.1
   data$migration_p[data$sex == "F" & data$migration == "0"] <- -0.05
   data$migration_p[data$sex == "F" & data$migration == "1"] <- 1.05
-  points(data$length[mi], data$migration_p[mi], 
+  points(data$size[mi], data$migration_p[mi], 
          col = scales::alpha(cols["M"], 0.5), cex = 0.5)
-  points(data$length[fi], data$migration_p[fi], 
+  points(data$size[fi], data$migration_p[fi], 
          col = scales::alpha(cols["F"], 0.5), cex = 0.5)
 }
 add_outcomes(fish)
 
 #### Add axis labels
 add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-  mtext(side = 1, "Standard length (cm)", cex = cex, line = line, ...)
+  if (size == "length") {
+    xlab <- "Standard length (cm)"
+  } else {
+    xlab <- "Mass (10 g)"
+  }
+  mtext(side = 1, xlab, cex = cex, line = line, ...)
   mtext(side = 2, "Probability of out-migration", cex = cex, line = line, ...)
 }
 add_axes_labels()
@@ -308,7 +321,7 @@ if (!is_glmer) {
 
     #### Define variables
     response  <- "pr"
-    predictor <- "length"
+    predictor <- "size"
     mframe <- model.frame(mod)
     stream <- sort(unique(fish$stream))[i]
     # Define fish_for_stream (rather than model.frame(mod)) because
@@ -318,8 +331,8 @@ if (!is_glmer) {
     # Check size ranges
     # Size ranges are shown via the rug (add_outcomes())
     # But points mark proportions in size classes
-    range(fish_for_stream$length[fish_for_stream$sex == "M"])
-    range(fish_for_stream$length[fish_for_stream$sex == "F"])
+    range(fish_for_stream$size[fish_for_stream$sex == "M"])
+    range(fish_for_stream$size[fish_for_stream$sex == "F"])
 
     #### Create plot
     pretty_blank(prop_ss, predictor, response, pretty_axis_args = paa)
@@ -347,8 +360,8 @@ if (!is_glmer) {
 
 if (is_glmer) {
   
-  ggpredict(mod, terms = "sex", condition = c(length = small))
-  ggpredict(mod, terms = "sex", condition = c(length = large))
+  ggpredict(mod, terms = "sex", condition = c(size = small))
+  ggpredict(mod, terms = "sex", condition = c(size = large))
   
 } else {
   
@@ -363,11 +376,11 @@ if (is_glmer) {
   # Predicted migration pr for small/large males/females
   rbind(
     # Small females/males 
-    wrap_compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday))),
-    wrap_compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday))),
+    wrap_compare_gam(mod, data.frame(sex = "F", size = small, yday = median(fish$yday))),
+    wrap_compare_gam(mod, data.frame(sex = "M", size = small, yday = median(fish$yday))),
     # Large females/males
-    wrap_compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday))),
-    wrap_compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday)))
+    wrap_compare_gam(mod, data.frame(sex = "F", size = large, yday = median(fish$yday))),
+    wrap_compare_gam(mod, data.frame(sex = "M", size = large, yday = median(fish$yday)))
   ) |> round(digits = 2)
     
   # How much more likely are small females likely to migrate than smaller males? 
@@ -394,7 +407,7 @@ res    <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
 
 #### Check residuals versus predictors
 plotResiduals(res, form = mframe$sex)
-plotResiduals(res, form = mframe[, "log(length)"])
+plotResiduals(res, form = mframe[, "log(size)"])
 
 #### Run additional DHARMa checks
 testDispersion(res)
