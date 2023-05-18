@@ -84,6 +84,13 @@ ggplot(migrants) +
 #########################
 #### Implement modelling 
 
+#### Define 'size' predictor variable
+size             <- "length"
+fish$size        <- fish[, size]
+migrants$size    <- migrants[, size]
+here_fig <- function(...) dv::here_fig("relationships", "fig", glue::glue("by-{size}"), ...)
+here_tbl <- function(...) dv::here_fig("relationships", "tbl", glue::glue("by-{size}"), ...)
+
 #### Fit models
 # We will fit a model of day ~ sex * length
 # * We expect migration timing to be delayed (larger) for smaller individuals 
@@ -100,7 +107,7 @@ gamma <- 1
 # ... This model is closest to our hypothesis in that it allows M/F to vary in timing by size
 mod_1 <- gam(migration_yday ~ 
                sex +
-               s(length, by = sex, bs = "tp", m = 2) + 
+               s(size, by = sex, bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5) + 
                s(stream, bs = "re") + 
                s(stream, section, bs = "re"),
@@ -114,7 +121,7 @@ cowplot::plot_grid(plotlist = plot(ggeffects::ggpredict(mod_1), add.data = TRUE)
 # mod_2: mod_1 but with log(length) as predictor
 mod_2 <- gam(migration_yday ~
                sex +
-               s(log(length), by = sex, bs = "tp", m = 2) + 
+               s(log(size), by = sex, bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5) + 
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = "re"),
@@ -139,7 +146,7 @@ mod_3 <- gam(migration_yday ~
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = "re") + 
                # Group-level smoothers with different wiggliness:
-               s(log(length), by = interaction(sex, stream), bs = "tp", m = 2) + 
+               s(log(size), by = interaction(sex, stream), bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5),
              knots = list(yday = c(0, 365)),
              family = gaussian(link = "identity"), data = migrants,
@@ -160,7 +167,7 @@ mod_4 <- gam(migration_yday ~
                s(stream, bs = "re") + 
                s(stream, rc_section, bs = "re") + 
                # Group level smoothers with different wiggliness:
-               s(log(length), by = stream, bs = "tp", m = 2) + 
+               s(log(size), by = stream, bs = "tp", m = 2) + 
                s(yday, bs = "cc", k = 5),
              knots = list(yday = c(0, 365)),
              family = gaussian(link = "identity"), data = migrants,
@@ -177,14 +184,14 @@ data.frame(mod = c(1, 2, 3, 4),
   mutate(delta_aic = aic - aic[1]) %T>%
   print() |> 
   tidy_numbers(digits = 2) |> 
-  tidy_write(here_fig("tables", "migration-timing-aics.txt"))
+  tidy_write(here_tbl("migration-timing-aics.txt"))
 mod <- mod_4
 
 ##### Check model summary 
 summary(mod)
 AIC(mod)
 plot(mod, pages = 1, scheme = 1, all.terms = TRUE)
-sink(here_fig("tables", "migration-timing-mod.txt"))
+sink(here_tbl("migration-timing-mod.txt"))
 print(summary.gam(mod, digits = 1))
 sink()
   
@@ -202,17 +209,22 @@ if (FALSE) {
 #### Visualise predictions across all streams
 # This is appropriate for models 1--2
 response  <- "migration_yday"
-predictor <- "length"
+predictor <- "size"
 mframe <- model.frame(mod)
 mo <- seq(as.Date("2015-03-01"), as.Date("2015-07-01"), by = "months")
 jd <- lubridate::yday(mo)
 mo <- format(mo, "%b")
 ylim <- c(min(migrants$migration_yday) - 2, lubridate::yday(as.Date("2015-07-20")))
-paa <- list(lim = list(x = lim_length, y = ylim), 
-            axis = list(x = list(at = at_length), 
+paa <- list(lim = list(x = lim_size[[size]], y = ylim), 
+            axis = list(x = list(at = at_size[[size]]), 
                         y = list(at = jd, labels = mo)))
 add_axes_labels <- function(cex = 1.25, line = 2, ...) {
-  mtext(side = 1, "Standard length (cm)", cex = cex, line = line, ...)
+  if (size == "length") {
+    xlab <- "Standard length (cm)"
+  } else {
+    xlab <- "Mass (10 g)"
+  }
+  mtext(side = 1, xlab, cex = cex, line = line, ...)
   mtext(side = 2, "Time of migration (months)", cex = cex, line = line, ...)
 }
 if (FALSE) {
@@ -251,7 +263,7 @@ if (FALSE) {
 # The intercept/average value of the smooth is higher in Schützenbrunnen
 # than in the other streams.
 plot(ggpredict(mod, terms = c("sex", "stream")), add.data = TRUE)
-plot(ggpredict(mod, terms = c("length", "stream", "sex")), add.data = TRUE)
+plot(ggpredict(mod, terms = c("size", "stream", "sex")), add.data = TRUE)
 plot(ggpredict(mod, terms = c("yday", "stream")), add.data = TRUE)
 
 #### Examine the partial effect of stream
@@ -289,9 +301,11 @@ pp <- par(mfrow = c(2, 4), oma = c(3, 3, 1, 1), mar = c(2, 2, 2, 2))
 dens_ymax <- 
   lapply(unique(streams), function(stream) {
   fish_for_stream <- fish[fish$stream == stream, ]
-  len_m     <- fish_for_stream$length[fish_for_stream$sex == "M"]
+  len_m     <- fish_for_stream$size[fish_for_stream$sex == "M"]
+  len_m     <- len_m[!is.na(len_m)]
   dens_m    <- density(len_m, from = min(len_m), to = max(len_m))
-  len_f     <- fish_for_stream$length[fish_for_stream$sex == "F"]
+  len_f     <- fish_for_stream$size[fish_for_stream$sex == "F"]
+  len_f     <- len_f[!is.na(len_f)]
   dens_f    <- density(len_f, from = min(len_f), to = max(len_f))
   c(dens_m$y, dens_f$y)
 }) |> unlist() |> max()
@@ -300,7 +314,7 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   
   #### Define variables
   response  <- "migration_yday"
-  predictor <- "length"
+  predictor <- "size"
   mframe <- migrants # model.frame(mod)
   stream <- sort(unique(fish$stream))[i]
   mframe_for_stream <- mframe[mframe$stream == stream, ]
@@ -320,16 +334,18 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   #### Add size distribution across all fish in stream for context
   pn <- par(new = TRUE)
   fish_for_stream <- fish[fish$stream == stream, ]
-  len_m     <- fish_for_stream$length[fish_for_stream$sex == "M"]
+  len_m     <- fish_for_stream$size[fish_for_stream$sex == "M"]
+  len_m     <- len_m[!is.na(len_m)]
   dens_m    <- density(len_m, from = min(len_m), to = max(len_m))
-  len_f     <- fish_for_stream$length[fish_for_stream$sex == "F"]
+  len_f     <- fish_for_stream$size[fish_for_stream$sex == "F"]
+  len_f     <- len_f[!is.na(len_f)]
   dens_f    <- density(len_f, from = min(len_f), to = max(len_f))
   pos       <- -0.035 # controls space between points 
   adj       <- 1.75   # controls distance of density plot below points
   dens_m$y  <- dens_m$y * -1 + pos * adj
   dens_f$y  <- dens_f$y * -1 + pos * adj
   dens_ylim <- c((dens_ymax * -1 + pos) * 5, 0)
-  plot(0, 0, 
+  plot(0, 0, type = "n",
        xlim = paa$lim$x, ylim = dens_ylim, 
        axes = FALSE, xlab = "", ylab = "")
   points(len_f, rep(0, length(len_f)), 
@@ -374,11 +390,11 @@ wrap_compare_gam <- function(model, newdata) {
 comp <- 
   rbind(
     # Large females/males (early migration)
-    wrap_compare_gam(mod, data.frame(sex = "F", length = large, yday = median(fish$yday), stream = stream)),
-    wrap_compare_gam(mod, data.frame(sex = "M", length = large, yday = median(fish$yday), stream = stream)),
+    wrap_compare_gam(mod, data.frame(sex = "F", size = large, yday = median(fish$yday), stream = stream)),
+    wrap_compare_gam(mod, data.frame(sex = "M", size = large, yday = median(fish$yday), stream = stream)),
     # Small females/males (late migration)
-    wrap_compare_gam(mod, data.frame(sex = "F", length = small, yday = median(fish$yday), stream = stream)),
-    wrap_compare_gam(mod, data.frame(sex = "M", length = small, yday = median(fish$yday), stream = stream))
+    wrap_compare_gam(mod, data.frame(sex = "F", size = small, yday = median(fish$yday), stream = stream)),
+    wrap_compare_gam(mod, data.frame(sex = "M", size = small, yday = median(fish$yday), stream = stream))
   ) |> 
   round(digits = 0) |>
   as.data.frame()
@@ -407,7 +423,7 @@ res    <- simulateResiduals(mod, refit = FALSE, plot = TRUE, re.form = NULL)
 
 #### Check residuals versus predictors
 plotResiduals(res, form = mframe$sex)
-plotResiduals(res, form = mframe[, "log(length)"])
+plotResiduals(res, form = mframe[, "log(size)"])
 plotResiduals(res, form = mframe[, "yday"])
 plotResiduals(res, form = mframe[, "stream"])
 
