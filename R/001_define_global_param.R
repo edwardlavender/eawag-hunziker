@@ -25,11 +25,19 @@ alpha_ci  <- 0.25
 # range(fish$length)
 lim_length <- c(8.5, 25)
 at_length  <- seq(10, 24, by = 4)
+# range(fish$mass, na.rm = TRUE)
+lim_mass <- c(1, 30)
+at_mass  <- seq(5, 30, by = 5)
+# Collate information
+lim_size <- list(length = lim_length, 
+                 mass = lim_mass)
+at_size <- list(length = at_length, 
+                mass = at_mass)
 
 #### Define 'small' and 'large' sizes for comparisons
 # The units here need to be the same is the data used to fit models
-small <- 10 # cm
-large <- 15 # cm
+small <- 10 # cm or kg
+large <- 15 # cm or kg
 
 
 #### End of code.
