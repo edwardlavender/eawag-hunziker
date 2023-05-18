@@ -328,7 +328,12 @@ lapply(seq_len(length(unique(fish$stream))), function(i) {
   add_error_envelopes_by_sex(pred, predictor)
   legend("bottomright", legend = paste0("n = ", nrow(mframe_for_stream)), bty = "n")
   # legend("bottomright", legend = bquote(italic(n) * " = " * .(nrow(mframe_for_stream))), bty = "n")
-  add_obs_by_sex(mframe_for_stream, predictor, response)
+  if (TRUE) {
+    add_obs_by_sex(mframe_for_stream, predictor, response)
+  } else {
+    add_obs_by_sex(mframe_for_stream, predictor, response, 
+                   cex = fish$mass/5)
+  }
   mtext(side = 3, stream, font = 2, line = 0.25)
   
   #### Add size distribution across all fish in stream for context
