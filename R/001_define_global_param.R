@@ -26,8 +26,8 @@ alpha_ci  <- 0.25
 lim_length <- c(8.5, 25)
 at_length  <- seq(10, 24, by = 4)
 # range(fish$mass, na.rm = TRUE)
-lim_mass <- c(0, 300)
-at_mass  <- seq(0, 300, by = 50)
+lim_mass <- c(1, 30)
+at_mass  <- seq(5, 30, by = 5)
 # Collate information
 lim_size <- list(length = lim_length, 
                  mass = lim_mass)

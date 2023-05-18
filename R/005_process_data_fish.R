@@ -66,7 +66,7 @@ fish <-
          yday = lubridate::yday(date),
          period = as.integer(as.Date("2015-06-30") - date), 
          length = length/10, 
-         mass = round(as.numeric(mass), digits = 1),
+         mass = round(as.numeric(mass), digits = 1)/10,
          migration_date = as.Date(migration_date),
          migration_yday = lubridate::yday(migration_date)
          ) |>
