@@ -36,9 +36,15 @@ tag_sites_dist <- readRDS(here_data_raw("spatial", "streams", "characteristics",
 #### Process migration data
 
 #### Select and process relevant columns
+# Process streams 
 fish$stream <- as.character(fish$stream)
 fish$stream[fish$stream == "Klosterbach UR"] <- "Klosterbach (UR)"
 fish$stream[fish$stream == "Klosterbach SZ"] <- "Klosterbach (SZ)"
+# Check size (length/weight) columns
+table(is.na(fish$SL))
+table(fish$mass == "na" | is.na(fish$mass))
+plot(as.numeric(fish$mass), fish$SL)
+# Define data frame
 fish <- 
   fish |> 
   mutate(id = row_number()) |>
@@ -48,7 +54,7 @@ fish <-
          date = tag.date,
          stream,
          sex = sex, 
-         length = SL,
+         length = SL, mass,
          migration = downmig.bin, 
          migration_date = outmig.date, 
          ) |>
@@ -60,11 +66,12 @@ fish <-
          yday = lubridate::yday(date),
          period = as.integer(as.Date("2015-06-30") - date), 
          length = length/10, 
+         mass = round(as.numeric(mass), digits = 1)/10,
          migration_date = as.Date(migration_date),
          migration_yday = lubridate::yday(migration_date)
          ) |>
   select(id, pit_id, fec_id, date, yday, period, stream, 
-         sex, length, migration, migration_date, migration_yday) |>
+         sex, length, mass, migration, migration_date, migration_yday) |>
   as.data.frame()
 
 #### Check individuals are defined by Fish Ec/PIT ID
@@ -209,7 +216,7 @@ stopifnot(!any(is.na(fish$dist_to_ant_from_tag)))
 migrants <- 
   fish |> 
   filter(migration == 1L) |> 
-  select(length, sex, migration_date, migration_yday, yday, stream, section, rc_section,
+  select(length, mass, sex, migration_date, migration_yday, yday, stream, section, rc_section,
          altitude, dist_to_lake_from_ant, dist_to_lake_from_tag, dist_to_ant_from_tag) 
 
 
