@@ -51,6 +51,7 @@ The project follows a standardised structure encouraged by the [`dv`](https://gi
         -   `process_data_spatial.R` processes spatial datasets (namely, stream geometries), to define distances along streams to sampling sections and related variables;
         -   `process_data_fish.R` processes the fish data used for analysis;
     -   `analyse_*` scripts analyse the data and produce figures:
+        -   `analyse_data.R` produces summary statistics;
         -   `analyse_p1` analyses 'Prediction 1' (females, and especially small females, should be more likely to undertake migration than males); 
         -   `analyse_p2` analyses 'Prediction 2' (females should migrate earlier than equivalently sized males); <br/>
 

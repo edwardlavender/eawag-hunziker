@@ -101,6 +101,7 @@ follows:
         sampling sections and related variables;
       - `process_data_fish.R` processes the fish data used for analysis;
     - `analyse_*` scripts analyse the data and produce figures:
+      - `analyse_data.R` produces summary statistics;
       - `analyse_p1` analyses ‘Prediction 1’ (females, and especially
         small females, should be more likely to undertake migration than
         males);
