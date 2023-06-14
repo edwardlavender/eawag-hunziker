@@ -194,11 +194,13 @@ size_vars <- c("length", "mass")
 prop_ss <- 
   lapply(size_vars, function(size_var) {
     fish$size <- fish[, size_var]
-    fish |>
+    out <- 
+      fish |>
       # group_by(sex) |>
-      mutate(bin = cut(size, seq(min(size, na.rm = TRUE), 
-                                 max(size, na.rm = TRUE), 
-                                 by = size_class[[size_var]]))
+      filter(!is.na(size)) |>
+      mutate(bin = cut(size, seq(min(size), max(size) + size_class[[size_var]], 
+                                 by = size_class[[size_var]]), 
+                       include.lowest = TRUE, right = FALSE)
              ) |>
       # ungroup() |>
       group_by(sex, bin) |>
@@ -207,8 +209,9 @@ prop_ss <-
       mutate(size = parse_cut(bin), 
              col = as.character(scales::alpha(cols, alpha_pt)[as.character(sex)])) |> 
       select(sex, n, bin, size, pr, col) |>
-      filter(!is.na(bin)) |> 
       as.data.frame()
+    stopifnot(!any(is.na(out$bin)))
+    out
   })
 names(prop_ss) <- size_vars
 saveRDS(prop_ss, here_data("prop_ss.rds"))
@@ -218,11 +221,13 @@ saveRDS(prop_ss, here_data("prop_ss.rds"))
 prop_sss <- 
   lapply(size_vars, function(size_var) {
     fish$size <- fish[, size_var]
-    fish |>
+    out <- 
+      fish |>
+      filter(!is.na(size)) |>
       group_by(stream, sex) |>
-      mutate(bin = cut(size, seq(min(size, na.rm = TRUE), 
-                                 max(size, na.rm = TRUE), 
-                                 by = size_class[[size_var]]))
+      mutate(bin = cut(size, seq(min(size), max(size) + size_class[[size_var]], 
+                                 by = size_class[[size_var]]), 
+                       include.lowest = TRUE, right = FALSE)
              ) |>
       ungroup() |>
       group_by(stream, sex, bin) |>
@@ -231,8 +236,9 @@ prop_sss <-
       mutate(size = parse_cut(bin), 
              col = as.character(scales::alpha(cols, alpha_pt)[as.character(sex)])) |> 
       select(stream, sex, n, bin, size, pr, col) |>
-      filter(!is.na(bin)) |> 
       as.data.frame()
+    stopifnot(!any(is.na(out$bin)))
+    out
   })
 names(prop_sss) <- size_vars
 saveRDS(prop_sss, here_data("prop_sss.rds"))
@@ -264,14 +270,19 @@ lapply(c("length", "mass"), function(size_var) {
   prop_ms <- 
     fish |>
     filter(migration == 1L) |>
-    mutate(bin = cut(size, seq(min(size), max(size), by = size_class[[size_var]]))) |>
+    filter(!is.na(size)) |>
+    mutate(bin = cut(size, seq(min(size), max(size) + size_class[[size_var]], 
+                               by = size_class[[size_var]]), 
+                     include.lowest = TRUE, right = FALSE)
+    ) |>
     group_by(bin) |> 
     summarise(n = n(), 
               nm = length(which(sex == "M")), 
               nf = length(which(sex == "F")), 
               pm = nm/n, 
-              pf = nf/n,) |> 
+              pf = nf/n) |> 
     mutate(bin = parse_cut(bin))
+  stopifnot(!any(is.na(prop_ms$bin)))
   # Define plotting properties
   squash_param <- 20
   prop_ms$cex <- prop_ms$n/squash_param
