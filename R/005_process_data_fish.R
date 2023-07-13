@@ -54,7 +54,7 @@ fish <-
          date = tag.date,
          stream,
          sex = sex, 
-         length = SL, mass,
+         length = SL, total_length = TL, mass,
          migration = downmig.bin, 
          migration_date = outmig.date, 
          ) |>
@@ -66,12 +66,13 @@ fish <-
          yday = lubridate::yday(date),
          period = as.integer(as.Date("2015-06-30") - date), 
          length = length/10, 
+         total_length = total_length/10,
          mass = round(as.numeric(mass), digits = 1)/10,
          migration_date = as.Date(migration_date),
          migration_yday = lubridate::yday(migration_date)
          ) |>
   select(id, pit_id, fec_id, date, yday, period, stream, 
-         sex, length, mass, migration, migration_date, migration_yday) |>
+         sex, length, total_length, mass, migration, migration_date, migration_yday) |>
   as.data.frame()
 
 #### Check individuals are defined by Fish Ec/PIT ID
