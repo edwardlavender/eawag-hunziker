@@ -178,6 +178,50 @@ mtext(side = 2, "Frequency", line = 2)
 HDInterval::hdi(fish$length, allowSplit = TRUE)
 dev.off()
 
+#### Relationship between SL and TL 
+# Define SL and TL
+fish$SL <- fish$length
+fish$TL <- fish$total_length
+# A minimum TL of 105 mm was used
+# This corresponds to a smallest size of 89 mm
+range(fish$SL, na.rm = TRUE)
+range(fish$TL, na.rm = TRUE)
+sort(fish$SL[fish$TL == min(fish$TL)])
+# ... Which is very similar to the average (expected) standard length
+mod <- lm(SL ~ TL, data = fish)
+ptl <- 105/10
+psl <- predict(mod, newdata = data.frame(TL = ptl))
+if (FALSE) {
+  pp <- par(mfrow = c(2, 2))
+  plot(mod)
+  par(pp)
+}
+# Visualise SL vs TL 
+png(here_fig("sl-vs-tl.png"), 
+    height = 5, width = 5, units = "in", res = 600)
+xlim <- c(7, 30)
+ylim <- c(7, 30)
+axis_ls <- 
+  prettyGraphics::pretty_predictions_1d(mod, 
+                                        xlim = xlim, ylim = ylim, 
+                                        add_points = list(cex = 0.5, lwd = 0.5, col = "grey20"),
+                                        add_xlab = list(text = ""), add_ylab = list(text = ""), 
+                                        add_main = NULL)
+# lines(rep(ptl, 2), c(ylim[1], psl), lty = 3, col = "red", lwd = 2)
+# lines(c(xlim[1], ptl), rep(psl, 2), lty = 3, col = "red", lwd = 2)
+len <- 0.05
+col <- "red"
+lwd <- 1.5
+arrows(x0 = ptl, x1 = ptl, y0 = ylim[1], y1 = psl, 
+       length = 0, col = col, lwd = lwd)
+arrows(x0 = ptl, x1 = xlim[1], y0 = psl, y1 = psl, 
+       length = len, col = col, lwd = lwd)
+lines(xlim, xlim, lty = 3)
+cex.mtext <- 1.25
+mtext(side = 1, "Total length (cm)", cex = cex.mtext, line = 2)
+mtext(side = 2, "Standard length (cm)", cex = cex.mtext, line = 2.5)
+dev.off()
+
 #### Count the number of streams/captures per stream
 length(unique(fish$stream))
 table(fish$stream)
