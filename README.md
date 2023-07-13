@@ -2,9 +2,10 @@ Migratory propensity in juvenile brown trout
 ================
 Edward Lavender\*
 
-[![Project Status: Active – The project has reached a stable, usable
-state and is being actively
-developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Project Status: Inactive – The project has reached a stable, usable
+state but is no longer being actively developed; support/maintenance
+will be provided as time
+allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
 
 <sup>\*</sup>This repository is maintained by Edward Lavender
 (<edward.lavender@eawag.ch>).
@@ -150,7 +151,8 @@ workflow.
 
 # Citation
 
-Lavender, E., Hunziker, Y. et al. (in prep). Sex- and length-dependent
-variation in migratory propensity in brown trout.
+Lavender, E., Hunziker, Y. et al. (in review). Sex- and length-dependent
+variation in migratory propensity in brown trout. Ecology of Freshwater
+Fish.
 
 ------------------------------------------------------------------------
