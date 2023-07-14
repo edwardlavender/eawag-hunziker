@@ -65,8 +65,9 @@ follows:
 
 2.  **`data-raw/`** contains ‘raw’ data:
 
-    - `fish/` contains a dataframe that defines individual size, sex and
-      migratory status (0, 1) for sampled individuals (assembled by YH);
+    - `fish/` contains dataframes that define individual size, sex and
+      migratory status (0, 1) for sampled individuals (assembled by YH)
+      and associated PIT tag data;
     - `spatial/` contains supporting spatial datasets, including:
       - `altitude.tif`, a raster that defines the altitude (at 2 x 2 m
         resolution) in the study area, from the [Swiss Federal Office of
@@ -120,9 +121,9 @@ follows:
 
 7.  **`doc/`** contains supporting documents.
 
-Note that the `data-raw/`, `data/` (except `data/inst/`), `fig/` and
-`doc` directories are not currently provided in the online version of
-this repository.
+Note that the `data-raw/spatial/`, `data/` (except `data/inst/`), `fig/`
+and `doc` directories are not currently provided in the online version
+of this repository.
 
 # Instructions
 
