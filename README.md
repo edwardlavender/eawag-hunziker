@@ -6,6 +6,7 @@ Edward Lavender\*
 state but is no longer being actively developed; support/maintenance
 will be provided as time
 allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
+[![DOI](https://zenodo.org/badge/630420674.svg)](https://zenodo.org/badge/latestdoi/630420674)
 
 <sup>\*</sup>This repository is maintained by Edward Lavender
 (<edward.lavender@eawag.ch>).

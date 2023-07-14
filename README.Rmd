@@ -4,7 +4,7 @@ author: Edward Lavender*
 output: github_document
 ---
 
-[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
+[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive) [![DOI](https://zenodo.org/badge/630420674.svg)](https://zenodo.org/badge/latestdoi/630420674)
 
 ^\*^This repository is maintained by Edward Lavender (edward.lavender@eawag.ch).
 
