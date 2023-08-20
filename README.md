@@ -1,6 +1,7 @@
 Migratory propensity in juvenile brown trout
 ================
-Edward Lavender\*
+Edward Lavender\*, Yannick Hunziker, Darryl McLennan, Philip Dermond,
+Dominique Stalder, Oliver Selz, Jakob Brodersen
 
 [![Project Status: Inactive – The project has reached a stable, usable
 state but is no longer being actively developed; support/maintenance
@@ -17,8 +18,9 @@ This repository contains methods, written in
 [R](https://www.r-project.org/) and organised as an
 [RStudio](https://www.rstudio.com/)
 [Project](https://r4ds.had.co.nz/workflow-projects.html) for Lavender et
-al. (in prep). Sex- and length-dependent variation in migratory
-propensity in brown trout.
+al. (2023). Sex- and length-dependent variation in migratory propensity
+in brown trout. Ecology of Freshwater Fish.
+<https://doi.org/10.1111/eff.12745>
 
 In this project, we studied the migratory propensity of potamodromous
 brown trout (*Salmo trutta*) in streams around Lake Lucerne (central
@@ -153,8 +155,8 @@ workflow.
 
 # Citation
 
-Lavender, E., Hunziker, Y. et al. (in review). Sex- and length-dependent
+Lavender, E., Hunziker, Y. et al. (2023). Sex- and length-dependent
 variation in migratory propensity in brown trout. Ecology of Freshwater
-Fish.
+Fish. <https://doi.org/10.1111/eff.12745>
 
 ------------------------------------------------------------------------

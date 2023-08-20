@@ -1,6 +1,6 @@
 ---
 title: Migratory propensity in juvenile brown trout
-author: Edward Lavender*
+author: Edward Lavender*, Yannick Hunziker, Darryl McLennan, Philip Dermond, Dominique Stalder, Oliver Selz, Jakob Brodersen
 output: github_document
 ---
 
@@ -10,7 +10,7 @@ output: github_document
 
 # Introduction
 
-This repository contains methods, written in [R](https://www.r-project.org/) and organised as an [RStudio](https://www.rstudio.com/) [Project](https://r4ds.had.co.nz/workflow-projects.html) for Lavender et al. (in prep). Sex- and length-dependent variation in migratory propensity in brown trout.
+This repository contains methods, written in [R](https://www.r-project.org/) and organised as an [RStudio](https://www.rstudio.com/) [Project](https://r4ds.had.co.nz/workflow-projects.html) for Lavender et al. (2023). Sex- and length-dependent variation in migratory propensity in brown trout. Ecology of Freshwater Fish. https://doi.org/10.1111/eff.12745
 
 In this project, we studied the migratory propensity of potamodromous brown trout (_Salmo trutta_) in streams around Lake Lucerne (central Switzerland). In this system, the trout exhibit partial lacustrine--adfluvial migration, with a portion of individuals remaining resident in natal rivers while others migrate into the Lake (where predation risks are higher but growth opportunities are also elevated) for a period of time, before returning to natal streams to overwinter. We captured would-be first-time migrants in streams using electrofishing to study migratory propensity in relation to sex and length. We expected that females, and especially small females, would be more likely to undertake migration than equivalently sized males, and that they would migrate earlier in the season than males. Sampled individuals were measured, sexed using a genetic sex determination method and tagged using passive integrated transponders (PIT), which enabled us to identify migration into the Lake. This repository records how we coupled individual trait-level data (size, sex) with inferred migratory status (migrant, non-migrant) to model migratory propensity. 
 
@@ -86,6 +86,6 @@ Follow the steps described below to clone the project and reproduce the workflow
 
 # Citation
 
-Lavender, E., Hunziker, Y. et al. (in review). Sex- and length-dependent variation in migratory propensity in brown trout. Ecology of Freshwater Fish.
+Lavender, E., Hunziker, Y. et al. (2023). Sex- and length-dependent variation in migratory propensity in brown trout. Ecology of Freshwater Fish. https://doi.org/10.1111/eff.12745 
 
 ------------------------------------------------------------------------
